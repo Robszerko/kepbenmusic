@@ -57,7 +57,7 @@
     .tv-screen-wrapper {
         position: relative;
         width: 100%;
-        padding-top: 56.25%; /* 16:9 */
+        padding-top: 56.25%; /* 16:9 képarány */
         background: #000000;
         border-radius: 20px;
         overflow: hidden;
@@ -77,6 +77,16 @@
         transition: opacity 0.35s ease;
     }
     .tv-video-deck.active { opacity: 1; z-index: 2; }
+
+    /* 🎯 MÉRETARÁNYOS STÚDIÓ GRAFIKAI VÁSZON (1000px BÁZISALAPÚ SKÁLÁZÁS) */
+    .tv-graphics-canvas {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 25;
+        pointer-events: none;
+        overflow: hidden;
+    }
 
     /* 📺 MONOSZKÓP RÉTEG */
     .tv-monoscope-layer {
@@ -116,8 +126,14 @@
     .tv-watermark-wrap {
         position: absolute;
         top: 28px; right: 38px;
-        z-index: 30; display: none; flex-direction: column; align-items: flex-end; gap: 8px;
-        user-select: none; pointer-events: none; transform-origin: top right;
+        z-index: 30;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        user-select: none;
+        pointer-events: none;
+        transform-origin: top right;
         transition: top 0.15s ease, right 0.15s ease, transform 0.15s ease, opacity 0.25s ease;
     }
 
@@ -181,7 +197,7 @@
 
     /* ☕🌅 REGGELI HÍR- ÉS IDŐJÁRÁS KÁRTYA */
     .tv-morning-info-panel {
-        position: absolute; bottom: 40px; left: 32px; width: 420px; max-width: calc(100% - 130px);
+        position: absolute; bottom: 40px; left: 32px; width: 420px;
         background: linear-gradient(135deg, rgba(22, 16, 38, 0.62) 0%, rgba(48, 24, 18, 0.58) 50%, rgba(15, 23, 42, 0.68) 100%);
         border-left: 4.5px solid #f59e0b; border-top: 1px solid rgba(251, 191, 36, 0.4); border-right: 1px solid rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(245, 158, 11, 0.25);
         border-radius: 16px; padding: 9px 13px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
@@ -233,17 +249,13 @@
     .vol-slider-wrap { display: flex; align-items: center; gap: 6px; }
     .vol-slider { width: 75px; accent-color: var(--accent-cyan); cursor: pointer; }
 
-    @media (max-width: 768px) {
+    @media (max-width: 640px) {
         body { padding: 6px; }
         .tv-screen-wrapper { border-radius: 14px; }
         .viewer-bar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
         .vol-slider { width: 55px; }
         .live-status-pill { display: none; }
         .btn-play-tv { padding: 8px 14px; font-size: 0.75rem; }
-
-        .tv-watermark-wrap { top: 14px !important; right: 16px !important; transform: scale(0.80) !important; }
-        .tv-age-rating-container { bottom: 24px !important; right: 16px !important; transform: scale(0.85) !important; }
-        .tv-morning-info-panel { bottom: 12px !important; left: 12px !important; width: calc(100% - 24px) !important; max-width: none !important; }
     }
 </style>
 </head>
@@ -299,75 +311,80 @@
             </div>
         </div>
 
-        <!-- ☕🌅 REGGELI HÍR- ÉS IDŐJÁRÁS SÁV -->
-        <div class="tv-morning-info-panel" id="tv-morning-info-panel">
-            <div class="info-header-row">
-                <div class="info-badge-title">
-                    <svg class="coffee-cup-svg" viewBox="0 0 24 24">
-                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
-                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
-                        <line x1="6" y1="1" x2="6" y2="4"/>
-                        <line x1="10" y1="1" x2="10" y2="4"/>
-                        <line x1="14" y1="1" x2="14" y2="4"/>
-                    </svg>
-                    <span id="morning-info-title-tab">ÉBREDJ KÉPBEN!</span>
-                    <span id="morning-info-clock" style="color:#fde68a; font-size:0.65rem;">--:--</span>
-                </div>
-                <div class="info-live-rates" id="morning-rates-display">
-                    <span>EUR: 395.4</span>
-                    <span>USD: 362.1</span>
-                </div>
-            </div>
-
-            <div class="info-news-box" id="info-news-box">
-                <div style="display:flex; align-items:center; gap:5px;">
-                    <span class="info-source-tag" id="info-news-source">KÉPBEN! HÍREK</span>
-                    <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:#fde68a;" id="info-news-time">Friss</span>
-                </div>
-                <div class="info-news-headline" id="info-news-headline">Élő hírek betöltése...</div>
-            </div>
-
-            <div class="info-weather-box" id="info-weather-box">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div class="weather-city-name" id="weather-city-name">Budapest</div>
-                        <div class="weather-cond-desc" id="weather-cond-desc">☀️ Tiszta idő</div>
+        <!-- 🎯 MÉRETARÁNYOS GRAFIKAI VÁSZON (AUTO-SCALE ENGINE) -->
+        <div class="tv-graphics-canvas" id="tv-graphics-canvas">
+            
+            <!-- ☕🌅 REGGELI HÍR- ÉS IDŐJÁRÁS SÁV -->
+            <div class="tv-morning-info-panel" id="tv-morning-info-panel">
+                <div class="info-header-row">
+                    <div class="info-badge-title">
+                        <svg class="coffee-cup-svg" viewBox="0 0 24 24">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                            <line x1="6" y1="1" x2="6" y2="4"/>
+                            <line x1="10" y1="1" x2="10" y2="4"/>
+                            <line x1="14" y1="1" x2="14" y2="4"/>
+                        </svg>
+                        <span id="morning-info-title-tab">ÉBREDJ KÉPBEN!</span>
+                        <span id="morning-info-clock" style="color:#fde68a; font-size:0.65rem;">--:--</span>
                     </div>
-                    <div class="weather-temp-badge" id="weather-temp-main">+18°C</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 🏷️ JOBB FELSŐ LOGÓ & 3D FLIP KÁRTYA -->
-        <div class="tv-watermark-wrap" id="tv-watermark-wrap">
-            <div style="display:flex; align-items:center;">
-                <div class="tv-watermark-clean">
-                    <svg class="kb-icon-mini" viewBox="0 0 24 24">
-                        <path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    <span class="tv-watermark-text-clean">KÉPBEN<span style="color:#ef4444;">!</span><span style="color:#38bdf8; margin-left:1px;">MUSIC</span></span>
-                    <span class="live-dot-static"></span>
-                </div>
-                <div class="tv-morning-clock" id="tv-morning-clock">07:15</div>
-            </div>
-
-            <div class="tv-flip-container">
-                <div class="tv-flip-card" id="tv-flip-card">
-                    <div class="flip-header-row">
-                        <span class="flip-status-badge badge-most" id="flip-status-badge">MOST</span>
-                        <span class="flip-show-name" id="flip-show-name">☀️ KÉPBEN! Délelőtt</span>
+                    <div class="info-live-rates" id="morning-rates-display">
+                        <span>EUR: 395.4</span>
+                        <span>USD: 362.1</span>
                     </div>
-                    <div class="flip-track-title" id="flip-track-title">-</div>
+                </div>
+
+                <div class="info-news-box" id="info-news-box">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span class="info-source-tag" id="info-news-source">KÉPBEN! HÍREK</span>
+                        <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:#fde68a;" id="info-news-time">Friss</span>
+                    </div>
+                    <div class="info-news-headline" id="info-news-headline">Élő hírek betöltése...</div>
+                </div>
+
+                <div class="info-weather-box" id="info-weather-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div class="weather-city-name" id="weather-city-name">Budapest</div>
+                            <div class="weather-cond-desc" id="weather-cond-desc">☀️ Tiszta idő</div>
+                        </div>
+                        <div class="weather-temp-badge" id="weather-temp-main">+18°C</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 🟡🔴 KORHATÁR KARIKA -->
-        <div class="tv-age-rating-container" id="tv-age-rating-container">
-            <div class="nmhh-ring ring-yellow" id="nmhh-ring-box">
-                <span class="nmhh-number" id="nmhh-number-text">12</span>
+            <!-- 🏷️ JOBB FELSŐ LOGÓ & 3D FLIP KÁRTYA -->
+            <div class="tv-watermark-wrap" id="tv-watermark-wrap">
+                <div style="display:flex; align-items:center;">
+                    <div class="tv-watermark-clean">
+                        <svg class="kb-icon-mini" viewBox="0 0 24 24">
+                            <path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <span class="tv-watermark-text-clean">KÉPBEN<span style="color:#ef4444;">!</span><span style="color:#38bdf8; margin-left:1px;">MUSIC</span></span>
+                        <span class="live-dot-static"></span>
+                    </div>
+                    <div class="tv-morning-clock" id="tv-morning-clock">07:15</div>
+                </div>
+
+                <div class="tv-flip-container">
+                    <div class="tv-flip-card" id="tv-flip-card">
+                        <div class="flip-header-row">
+                            <span class="flip-status-badge badge-most" id="flip-status-badge">MOST</span>
+                            <span class="flip-show-name" id="flip-show-name">☀️ KÉPBEN! Délelőtt</span>
+                        </div>
+                        <div class="flip-track-title" id="flip-track-title">-</div>
+                    </div>
+                </div>
             </div>
+
+            <!-- 🟡🔴 KORHATÁR KARIKA -->
+            <div class="tv-age-rating-container" id="tv-age-rating-container">
+                <div class="nmhh-ring ring-yellow" id="nmhh-ring-box">
+                    <span class="nmhh-number" id="nmhh-number-text">12</span>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -424,6 +441,10 @@
     const FIREBASE_URL = "https://hiroszlop-default-rtdb.europe-west1.firebasedatabase.app";
     const VIDEO_CROSSFADE_SEC = 5;
 
+    // 🎯 1000px BÁZISSZÉLESSÉGŰ SKÁLÁZÓ FAKTOR
+    const BASE_SCREEN_WIDTH = 1000;
+    let currentScaleRatio = 1;
+
     let weekSchedules = {};
     let isTvBroadcasting = false;
     let isViewerPlaying = false;
@@ -436,7 +457,6 @@
     let masterVolume = 0.9;
     let isMuted = false;
 
-    // Felhőből érkező grafikai állapotok
     let isLogoVisible = true;
     let currentAgeRating = "12";
     let cloudPositions = null;
@@ -503,6 +523,56 @@
         const d = new Date();
         d.setDate(d.getDate() + dayOffset);
         return d.toLocaleDateString('sv-SE');
+    }
+
+    // 📐 VALÓS IDEJŰ MÉRETARÁNYOS SKÁLÁZÓ MOTOR (AUTO-SCALE ENGINE)
+    function updateResponsiveScaling() {
+        const currentWidth = tvScreenContainer.clientWidth;
+        currentScaleRatio = Math.max(0.35, currentWidth / BASE_SCREEN_WIDTH);
+        applyCloudPositions();
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+        updateResponsiveScaling();
+    });
+    resizeObserver.observe(tvScreenContainer);
+
+    function applyCloudPositions() {
+        const b = parseFloat(cloudPositions?.rating_pos_b || 60);
+        const r = parseFloat(cloudPositions?.rating_pos_r || 32);
+        const s = parseFloat(cloudPositions?.rating_pos_s || 38);
+
+        const lt = parseFloat(cloudPositions?.logo_pos_t || 28);
+        const lr = parseFloat(cloudPositions?.logo_pos_r || 38);
+        const ls = parseFloat(cloudPositions?.logo_scale || 100);
+
+        // Méretarányos koordináták kiszámítása
+        const scaledB = b * currentScaleRatio;
+        const scaledR = r * currentScaleRatio;
+        const scaledLt = lt * currentScaleRatio;
+        const scaledLr = lr * currentScaleRatio;
+
+        // 1. Korhatár karika skálázása és pozícionálása
+        ageRatingContainer.style.bottom = `${scaledB}px`;
+        ageRatingContainer.style.right = `${scaledR}px`;
+        ageRatingContainer.style.transform = `scale(${currentScaleRatio})`;
+
+        nmhhRingBox.style.width = `${s}px`;
+        nmhhRingBox.style.height = `${s}px`;
+        const numEl = nmhhRingBox.querySelector('.nmhh-number');
+        if (numEl) numEl.style.fontSize = `${s * 0.46}px`;
+
+        // 2. Logó és 3D Flip kártya skálázása és pozícionálása
+        watermarkWrap.style.top = `${scaledLt}px`;
+        watermarkWrap.style.right = `${scaledLr}px`;
+        watermarkWrap.style.transform = `scale(${currentScaleRatio * (ls / 100)})`;
+
+        // 3. Reggeli hírpanel skálázása és pozícionálása
+        morningInfoPanel.style.bottom = `${40 * currentScaleRatio}px`;
+        morningInfoPanel.style.left = `${32 * currentScaleRatio}px`;
+        if (morningInfoPanel.classList.contains('info-show')) {
+            morningInfoPanel.style.transform = `scale(${currentScaleRatio})`;
+        }
     }
 
     function setupAudioNodes() {
@@ -663,30 +733,6 @@
         watermarkWrap.style.display = (isViewerPlaying && isLogoVisible) ? 'flex' : 'none';
         applyAgeRating(currentAgeRating);
         applyCloudPositions();
-    }
-
-    function applyCloudPositions() {
-        if (window.innerWidth <= 768) return;
-
-        const b = cloudPositions?.rating_pos_b || "60";
-        const r = cloudPositions?.rating_pos_r || "32";
-        const s = cloudPositions?.rating_pos_s || "38";
-
-        const lt = cloudPositions?.logo_pos_t || "28";
-        const lr = cloudPositions?.logo_pos_r || "38";
-        const ls = cloudPositions?.logo_scale || "100";
-
-        ageRatingContainer.style.bottom = `${b}px`;
-        ageRatingContainer.style.right = `${r}px`;
-        nmhhRingBox.style.width = `${s}px`;
-        nmhhRingBox.style.height = `${s}px`;
-
-        const numEl = nmhhRingBox.querySelector('.nmhh-number');
-        if (numEl) numEl.style.fontSize = `${s * 0.46}px`;
-
-        watermarkWrap.style.top = `${lt}px`;
-        watermarkWrap.style.right = `${lr}px`;
-        watermarkWrap.style.transform = `scale(${ls / 100})`;
     }
 
     function applyAgeRating(rating) {
@@ -939,6 +985,7 @@
         isMorningInfoVisible = true;
         morningInfoPanel.classList.add('info-show');
         renderCurrentNewsCard();
+        applyCloudPositions();
 
         if (morningCycleInterval) clearInterval(morningCycleInterval);
         let step = 0;
@@ -1015,9 +1062,8 @@
         } catch(e) {}
     }
 
-    // ⚡ FIREBASE SSE VALÓS IDEJŰ PUSH ADATFOLYAM (AZONNALI SZINKRON)
+    // ⚡ FIREBASE VALÓS IDEJŰ PUSH ADATFOLYAM
     function listenToFirebaseRealtimeEvents() {
-        // 1. Beállítások és grafikák azonnali figyelése
         const settingsSource = new EventSource(`${FIREBASE_URL}/tv_broadcast_settings.json`);
         settingsSource.addEventListener('put', e => {
             try {
@@ -1052,7 +1098,6 @@
             } catch(err) {}
         });
 
-        // 2. Műsorrend és klipek azonnali figyelése
         const schedulesSource = new EventSource(`${FIREBASE_URL}/tv_week_schedules.json`);
         schedulesSource.addEventListener('put', e => {
             try {
@@ -1066,7 +1111,6 @@
                         const todaySched = weekSchedules[getSelectedDateKey(0)] || [];
                         const currentScheduledItem = todaySched.find(item => currentSecToday >= item.startSec && currentSecToday < item.endSec);
 
-                        // Ha a stúdióban a jelenleg futó klipet módosították vagy törölték, azonnal váltson át
                         if (!currentScheduledItem || currentScheduledItem.id !== currentlyPlayingId) {
                             checkScheduleAndPlayback(currentSecToday, todaySched);
                         }
@@ -1093,6 +1137,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
+        updateResponsiveScaling();
         listenToFirebaseRealtimeEvents();
         fetchNews();
         fetchWeather();
