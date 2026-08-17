@@ -54,7 +54,7 @@
         gap: 12px;
     }
 
-    /* 📺 16:9 PROFI TV KÉPERNYŐ KERET (GPU GYORSÍTOTT) */
+    /* 📺 16:9 PROFI TV KÉPERNYŐ KERET (HARDVERES GPU GYORSÍTÁSSAL) */
     .tv-screen-wrapper {
         position: relative;
         width: 100%;
@@ -62,7 +62,7 @@
         background: #000000;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 16px 45px rgba(0,0,0,0.85);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.85);
         border: 1.5px solid var(--border);
         transform: translateZ(0);
         backface-visibility: hidden;
@@ -121,7 +121,7 @@
         position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 14px;
         text-align: center; padding: 24px 32px; background: #0f172a;
         border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 20px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.8); max-width: 620px; width: 85%;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.8); max-width: 620px; width: 85%;
     }
     .standby-brand { font-family: 'Space Mono', monospace; font-weight: 900; font-size: 1.6rem; color: #fff; letter-spacing: -0.5px; }
     .standby-msg { font-size: 1rem; font-weight: 700; color: var(--text-main); }
@@ -130,7 +130,7 @@
         background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.45); padding: 6px 18px; border-radius: 10px;
     }
 
-    /* 🏷️ JOBB FELSŐ KÉPBEN! VÍZJEL & 3D FLIP KÁRTYA */
+    /* 🏷️ JOBB FELSŐ KÉPBEN! VÍZJEL */
     .tv-watermark-wrap {
         position: absolute;
         top: 26px; right: 32px;
@@ -169,18 +169,18 @@
     }
     .tv-morning-clock.active { display: inline-block; }
 
-    /* 🎴 3D FLIP KÁRTYA (SLÁGER INFORMÁCIÓK) */
-    .tv-flip-container { perspective: 800px; width: 360px; max-width: 42vw; display: flex; justify-content: flex-end; }
+    /* 🎴 GYORS, SIMA 2D FLIP/SLIDE KÁRTYA (ZERO LAGG) */
+    .tv-flip-container { width: 360px; max-width: 42vw; display: flex; justify-content: flex-end; }
     .tv-flip-card {
         width: 100%; background: var(--theme-gradient); border-right: 4px solid var(--theme-primary); border-radius: 12px;
         padding: 8px 12px; border-top: 1px solid rgba(255,255,255,0.20); border-bottom: 1px solid rgba(255,255,255,0.15); border-left: 1px solid rgba(255,255,255,0.15);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 3px;
-        transform-origin: top center; transform: rotateX(-90deg) scale(0.95) translateZ(0); opacity: 0;
-        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
-        backface-visibility: hidden;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 3px;
+        transform: translate3d(0, -8px, 0); opacity: 0;
+        transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+        backface-visibility: hidden; will-change: transform, opacity;
     }
-    .tv-flip-card.flip-show { transform: rotateX(0deg) scale(1) translateZ(0); opacity: 1; }
-    .tv-flip-card.flip-hide { transform: rotateX(90deg) scale(0.95) translateZ(0); opacity: 0; transition: transform 0.25s ease-in, opacity 0.2s ease-in; }
+    .tv-flip-card.flip-show { transform: translate3d(0, 0, 0); opacity: 1; }
+    .tv-flip-card.flip-hide { transform: translate3d(0, -8px, 0); opacity: 0; }
 
     .flip-header-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
     .flip-status-badge {
@@ -233,7 +233,7 @@
         user-select: none;
         pointer-events: none;
         transform: translate3d(0, 115%, 0);
-        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+        transition: transform 0.40s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.30s ease;
         opacity: 0;
         contain: layout paint;
         will-change: transform;
@@ -374,7 +374,7 @@
         z-index: 33;
         transform: translate3d(-125%, 0, 0);
         opacity: 0;
-        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.30s ease;
         user-select: none;
         pointer-events: none;
         display: flex;
@@ -460,12 +460,12 @@
     .viewer-bar {
         background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 10px 16px;
         display: flex; align-items: center; justify-content: space-between; gap: 12px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.5);
     }
     .btn-play-tv {
         background: var(--accent-cyan); color: #030712; border: none; padding: 11px 22px; border-radius: 12px;
         font-family: 'Space Mono', monospace; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;
-        transition: transform 0.2s ease, background 0.2s ease; box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+        transition: transform 0.2s ease, background 0.2s ease; box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
     }
     .btn-play-tv:active { transform: scale(0.97); }
 
@@ -757,8 +757,8 @@
     let isLogoVisible = true;
     let currentAgeRating = "12";
     let isRatingAutoTimerEnabled = true;
-    let ratingTimerOnHour = 6;
-    let ratingTimerOffHour = 21;
+    let ratingTimerOnTime = "06:00";
+    let ratingTimerOffTime = "21:00";
     let isNewsTickerManualEnabled = true;
     let cloudPositions = null;
 
@@ -833,6 +833,40 @@
     function cleanHtmlText(raw) {
         if (!raw) return "";
         return raw.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    // 📖 INTELLIGENS MONDAT-LEZÁRÓ FELDOLGOZÓ (Soha nem vágja el a mondatot a felénél!)
+    function formatCompleteSentenceSummary(rawText, maxChars = 340) {
+        if (!rawText) return "";
+        let clean = cleanHtmlText(rawText);
+        if (clean.length <= maxChars) {
+            if (!/[.!?]$/.test(clean)) clean += '.';
+            return clean;
+        }
+
+        const sentenceEndRegex = /([.!?])\s+/g;
+        let lastValidEnd = -1;
+        let match;
+
+        while ((match = sentenceEndRegex.exec(clean)) !== null) {
+            const endIndex = match.index + 1;
+            if (endIndex <= maxChars) {
+                lastValidEnd = endIndex;
+            } else {
+                break;
+            }
+        }
+
+        if (lastValidEnd > 50) {
+            return clean.substring(0, lastValidEnd).trim();
+        }
+
+        let cut = clean.substring(0, maxChars);
+        let lastSpace = cut.lastIndexOf(' ');
+        if (lastSpace > 40) {
+            cut = cut.substring(0, lastSpace).trim();
+        }
+        return cut.replace(/[,;:\-\s]+$/, '') + '.';
     }
 
     function parseArtistAndTitle(rawTitle) {
@@ -1005,8 +1039,8 @@
         const curCat = getDaypartKeyForHour(hourNum);
         applyDaypartTheme(curCat);
 
-        evaluateAgeRatingVisibility(hourNum);
-        evaluateNewsTickerStatus(hourNum);
+        evaluateAgeRatingVisibility();
+        evaluateNewsTickerStatus();
         evaluateUpcomingDrawerSchedule(hourNum, minuteNum, secondNum);
 
         if (isViewerPlaying && !currentlyPlayingId && !isVideoTransitioning && !transitionLock) {
@@ -1064,11 +1098,11 @@
             if (offsetSec < 15) {
                 hideNewsTicker();
                 setTimeout(() => {
-                    trigger3DFlipCard("MOST", clip.title, getDaypartKeyForHour(new Date().getHours()), 8000);
-                }, 800);
+                    trigger3DFlipCard("MOST", clip.title, getDaypartKeyForHour(new Date().getHours()), 7500);
+                }, 600);
             } else {
                 isIntroFlipRunning = false;
-                evaluateNewsTickerStatus(new Date().getHours());
+                evaluateNewsTickerStatus();
             }
 
             applyVisuals();
@@ -1106,26 +1140,38 @@
             nmhhRingBox.innerHTML = `<span class="nmhh-number">${rating}</span>`;
         }
 
-        evaluateAgeRatingVisibility(new Date().getHours());
+        evaluateAgeRatingVisibility();
     }
 
-    function evaluateAgeRatingVisibility(hour) {
+    function parseTimeToMinutes(timeStr) {
+        if (!timeStr) return 0;
+        const [h, m] = timeStr.split(':').map(Number);
+        return (h || 0) * 60 + (m || 0);
+    }
+
+    function evaluateAgeRatingVisibility() {
         if (!isViewerPlaying || currentAgeRating === 'none') {
             ageRatingContainer.style.display = 'none';
             return;
         }
 
         if (isRatingAutoTimerEnabled) {
-            if (ratingTimerOffHour > ratingTimerOnHour) {
-                if (hour >= ratingTimerOffHour || hour < ratingTimerOnHour) {
-                    ageRatingContainer.style.display = 'none';
-                    return;
-                }
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const onMinutes = parseTimeToMinutes(ratingTimerOnTime);
+            const offMinutes = parseTimeToMinutes(ratingTimerOffTime);
+
+            let isWithinActiveWindow = false;
+
+            if (onMinutes <= offMinutes) {
+                isWithinActiveWindow = (currentMinutes >= onMinutes && currentMinutes < offMinutes);
             } else {
-                if (hour >= ratingTimerOffHour && hour < ratingTimerOnHour) {
-                    ageRatingContainer.style.display = 'none';
-                    return;
-                }
+                isWithinActiveWindow = (currentMinutes >= onMinutes || currentMinutes < offMinutes);
+            }
+
+            if (!isWithinActiveWindow) {
+                ageRatingContainer.style.display = 'none';
+                return;
             }
         }
 
@@ -1245,8 +1291,8 @@
             isVideoTransitioning = false;
             setTimeout(() => {
                 transitionLock = false;
-                trigger3DFlipCard("MOST", newClip.title, getDaypartKeyForHour(new Date().getHours()), 8000);
-            }, 800);
+                trigger3DFlipCard("MOST", newClip.title, getDaypartKeyForHour(new Date().getHours()), 7500);
+            }, 600);
             preloadNextDeckClip(schedule);
             return;
         }
@@ -1281,8 +1327,8 @@
 
                 setTimeout(() => {
                     transitionLock = false;
-                    trigger3DFlipCard("MOST", newClip.title, getDaypartKeyForHour(new Date().getHours()), 8000);
-                }, 800);
+                    trigger3DFlipCard("MOST", newClip.title, getDaypartKeyForHour(new Date().getHours()), 7500);
+                }, 600);
                 preloadNextDeckClip(schedule);
             }
         }, fadeStepTime);
@@ -1313,9 +1359,9 @@
                 flipCardEl.classList.remove('flip-show');
                 flipCardEl.classList.add('flip-hide');
                 isIntroFlipRunning = false;
-                evaluateNewsTickerStatus(new Date().getHours());
+                evaluateNewsTickerStatus();
             }, durationMs);
-        }, 220);
+        }, 150);
     }
 
     function hideFlipCardImmediate() {
@@ -1349,11 +1395,10 @@
 
         flipSequenceTimers.push(setTimeout(() => {
             hideFlipCardImmediate();
-            evaluateNewsTickerStatus(new Date().getHours());
         }, 17500));
     }
 
-    // 📰 HÍRCSÍK ÉS IDŐJÁRÁS CSENDES HÁTTÉRMOTORJA (60 VÁROS)
+    // 📰 HÍRCSÍK ÉS IDŐJÁRÁS CSENDES HÁTTÉRMOTORJA (60 VÁROS, TELJES MONDATOKKAL)
     async function fetchLiveNews() {
         try {
             const res = await fetch(`${WORKER_URL}?_t=${Date.now()}`);
@@ -1370,10 +1415,8 @@
                         if (seen.has(key)) continue;
                         seen.add(key);
 
-                        let summaryText = cleanHtmlText(item.description || item.lead || item.summary || item.contentSnippet || item.content || "");
-                        if (summaryText && summaryText.length > 250) {
-                            summaryText = summaryText.slice(0, 245) + '...';
-                        }
+                        const rawSummary = item.description || item.lead || item.summary || item.contentSnippet || item.content || "";
+                        const summaryText = formatCompleteSentenceSummary(rawSummary, 340);
 
                         let timeMs = item.date ? new Date(item.date).getTime() : 0;
                         processed.push({
@@ -1500,13 +1543,16 @@
         }, 100);
     }
 
-    function evaluateNewsTickerStatus(hour) {
+    function evaluateNewsTickerStatus() {
         if (!isViewerPlaying || !isNewsTickerManualEnabled || cachedNewsItems.length === 0) {
             hideNewsTicker();
             return;
         }
 
-        if (isIntroFlipRunning || isEndSequenceRunning || isVideoTransitioning) {
+        const activeDeck = activeDeckName === 'A' ? deckA : deckB;
+        const isNearEnd = activeDeck.duration && (activeDeck.duration - activeDeck.currentTime <= 28);
+
+        if (isIntroFlipRunning || isEndSequenceRunning || isVideoTransitioning || isNearEnd) {
             hideNewsTicker();
             return;
         }
@@ -1529,7 +1575,7 @@
         ageRatingContainer.classList.remove('lifted-above-ticker');
     }
 
-    // 📅 15 PERCENKÉNT FELTŰNŐ 30 PERCES MŰSORELŐZETES MOTOR (20 MP-IG KÉPERNYŐN)
+    // 📅 15 PERCENKÉNT FELTŰNŐ 30 PERCES MŰSORELŐZETES (20 MP-IG KÉPERNYŐN)
     function evaluateUpcomingDrawerSchedule(hour, minute, second) {
         if (!isViewerPlaying || isVideoTransitioning || isIntroFlipRunning || isEndSequenceRunning) return;
 
@@ -1580,15 +1626,21 @@
         }, 20000);
     }
 
-    // ⚡ VALÓS IDEJŰ STÚDIÓJEL-VEZÉRLŐ ÉS PUSH SZINKRONIZÁCIÓ (FIREBASE REALTIME)
+    // ⚡ VALÓS IDEJŰ STÚDIÓJEL-VEZÉRLŐ ÉS PUSH SZINKRONIZÁCIÓ (FIREBASE REALTIME SSE + POLLING)
     function applyBroadcastSettingsState(s) {
         if (!s || typeof s !== 'object') return;
         if (s.isBroadcasting !== undefined) isTvBroadcasting = s.isBroadcasting;
         if (s.logo_visible !== undefined) isLogoVisible = s.logo_visible;
         if (s.rating !== undefined) currentAgeRating = s.rating;
         if (s.rating_auto_timer !== undefined) isRatingAutoTimerEnabled = s.rating_auto_timer;
-        if (s.rating_on_hour !== undefined) ratingTimerOnHour = parseInt(s.rating_on_hour, 10);
-        if (s.rating_off_hour !== undefined) ratingTimerOffHour = parseInt(s.rating_off_hour, 10);
+        
+        // Percre pontos időzítő szinkron
+        if (s.rating_on_time !== undefined) ratingTimerOnTime = s.rating_on_time;
+        else if (s.rating_on_hour !== undefined) ratingTimerOnTime = `${String(s.rating_on_hour).padStart(2, '0')}:00`;
+
+        if (s.rating_off_time !== undefined) ratingTimerOffTime = s.rating_off_time;
+        else if (s.rating_off_hour !== undefined) ratingTimerOffTime = `${String(s.rating_off_hour).padStart(2, '0')}:00`;
+
         if (s.news_ticker_enabled !== undefined) isNewsTickerManualEnabled = s.news_ticker_enabled;
         cloudPositions = s;
 
@@ -1660,6 +1712,7 @@
             });
         } catch(err) {}
 
+        // Gyors szinkronizációs ellenőrzés
         setInterval(async () => {
             try {
                 const res = await fetch(`${FIREBASE_URL}/tv_broadcast_settings.json?_t=${Date.now()}`);
