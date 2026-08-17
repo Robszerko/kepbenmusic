@@ -169,7 +169,7 @@
     }
     .tv-watermark-text-clean {
         font-family: 'Space Mono', monospace; font-weight: 800; font-size: 1.05rem; color: #ffffff;
-        letter-spacing: -0.4px; text-shadow: 0 2px 4px rgba(0,0,0,0.95); display: flex; align-items: center;
+        letter-spacing: -0.4px; text-shadow: 1px 1px 2px #000; display: flex; align-items: center;
     }
     .live-dot-static {
         width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444; flex-shrink: 0; margin-left: 3px;
@@ -190,15 +190,16 @@
         z-index: 33;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
         max-width: 520px;
         width: calc(100% - 140px);
         pointer-events: none;
         user-select: none;
         transform: translate3d(-125%, 0, 0);
         opacity: 0;
-        transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.30s ease;
+        transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
         will-change: transform, opacity;
+        contain: layout paint;
     }
     .tv-lower-third-banner.banner-show {
         transform: translate3d(0, 0, 0);
@@ -211,7 +212,7 @@
         align-items: center;
         gap: 8px;
         background: #070d1a;
-        padding: 4px 12px;
+        padding: 4px 10px;
         border-radius: 6px;
         border-left: 4px solid var(--theme-primary);
         border-top: 1px solid rgba(255,255,255,0.12);
@@ -233,7 +234,7 @@
     }
     .lt-show-badge .kb-icon-mini { width: 14px; height: 14px; stroke: var(--theme-primary); }
 
-    /* 🎵 ÉLŐ MINI ZENEI EQUALIZER HANGHULLÁM */
+    /* 🎵 ÉLŐ MINI ZENEI EQUALIZER HANGHULLÁM (0% CPU) */
     .lt-live-eq {
         display: flex;
         align-items: flex-end;
@@ -243,17 +244,20 @@
     }
     .lt-eq-bar {
         width: 2.5px;
+        height: 12px;
         background: var(--theme-primary);
         border-radius: 1px;
+        transform-origin: bottom;
+        will-change: transform;
         animation: eqPulse 1.2s ease-in-out infinite alternate;
     }
-    .lt-eq-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; }
-    .lt-eq-bar:nth-child(2) { height: 85%; animation-delay: 0.3s; }
-    .lt-eq-bar:nth-child(3) { height: 60%; animation-delay: 0.2s; }
-    .lt-eq-bar:nth-child(4) { height: 100%; animation-delay: 0.4s; }
+    .lt-eq-bar:nth-child(1) { animation-delay: 0.1s; }
+    .lt-eq-bar:nth-child(2) { animation-delay: 0.3s; }
+    .lt-eq-bar:nth-child(3) { animation-delay: 0.2s; }
+    .lt-eq-bar:nth-child(4) { animation-delay: 0.4s; }
     @keyframes eqPulse {
-        0% { height: 25%; opacity: 0.5; }
-        100% { height: 100%; opacity: 1; }
+        0% { transform: scaleY(0.25); opacity: 0.6; }
+        100% { transform: scaleY(1); opacity: 1; }
     }
 
     .lt-status-badge {
@@ -265,7 +269,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-left: 4px;
-        transition: background 0.2s ease, color 0.2s ease;
+        transition: background 0.15s ease;
     }
     .badge-most { background: #22c55e; color: #050811; }
     .badge-kovetkezik { background: #f59e0b; color: #050811; }
@@ -276,35 +280,35 @@
         background: var(--theme-gradient);
         border-left: 4px solid var(--theme-primary);
         border-radius: 8px;
-        padding: 7px 14px;
+        padding: 6px 12px;
         border-top: 1px solid rgba(255,255,255,0.18);
         border-right: 1px solid rgba(255,255,255,0.10);
         border-bottom: 1px solid rgba(255,255,255,0.10);
         box-shadow: 0 6px 18px rgba(0,0,0,0.7);
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 1px;
     }
     .lt-artist-row {
         font-family: 'Space Mono', monospace;
-        font-size: 0.74rem;
+        font-size: 0.72rem;
         font-weight: 800;
         color: var(--accent-cyan);
         letter-spacing: 0.2px;
         text-transform: uppercase;
         line-height: 1.2;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+        text-shadow: 1px 1px 2px #000;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     .lt-track-row {
-        font-size: 0.90rem;
+        font-size: 0.88rem;
         font-weight: 800;
         color: #ffffff;
         letter-spacing: -0.1px;
         line-height: 1.25;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+        text-shadow: 1px 1px 2px #000;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -312,7 +316,7 @@
         word-break: break-word;
     }
     .lt-track-row.font-shrink {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
     }
 
     /* 🟡🔴 KORHATÁR KARIKA */
@@ -365,12 +369,11 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        transition: opacity 0.25s ease, transform 0.25s ease;
-        will-change: opacity, transform;
+        transition: opacity 0.2s ease;
+        will-change: opacity;
     }
     .weather-box-anim.switching {
         opacity: 0;
-        transform: translate3d(0, -3px, 0);
     }
     .weather-icon-badge { font-size: 1.2rem; line-height: 1; }
     .weather-info-col { display: flex; flex-direction: column; line-height: 1.15; }
@@ -388,24 +391,6 @@
         contain: layout paint;
     }
 
-    .ticker-crawl-viewport::before,
-    .ticker-crawl-viewport::after {
-        content: '';
-        position: absolute;
-        top: 0; bottom: 0;
-        width: 24px;
-        z-index: 2;
-        pointer-events: none;
-    }
-    .ticker-crawl-viewport::before {
-        left: 0;
-        background: linear-gradient(to right, #090e1a, transparent);
-    }
-    .ticker-crawl-viewport::after {
-        right: 0;
-        background: linear-gradient(to left, #090e1a, transparent);
-    }
-
     .ticker-crawl-track {
         display: inline-flex;
         align-items: center;
@@ -416,6 +401,7 @@
         animation-timing-function: linear;
         animation-iteration-count: infinite;
         transform: translateZ(0);
+        text-rendering: optimizeSpeed;
     }
 
     .crawl-news-item {
@@ -599,7 +585,7 @@
         .vol-slider { width: 55px; }
         .live-status-pill { display: none; }
         .btn-play-tv { padding: 8px 14px; font-size: 0.75rem; }
-        .tv-lower-third-banner { width: calc(100% - 40px); max-width: 100%; bottom: 46px; left: 10px; }
+        .tv-lower-third-banner { width: calc(100% - 40px); max-width: 100%; bottom: 44px; left: 10px; }
         .tv-upcoming-drawer { width: 280px; max-width: 85vw; left: 12px; top: 40px; }
         .ticker-weather-block { min-width: 140px; padding: 0 8px; }
     }
@@ -967,6 +953,41 @@
         return raw.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
+    // 1. PONT: INTELLIGENS ZENEI CÍMTISZTÍTÓ & NORMALIZÁLÓ MOTOR (REGEX)
+    function sanitizeMusicTitle(raw) {
+        if (!raw) return "";
+        let s = raw.replace(/\.(mp4|webm|mov|mkv|mp3)$/i, '').replace(/_/g, ' ');
+        s = s.replace(/\s*[\[\(](official\s*(music\s*)?video|video|audio|lyrics|4k|hd|hq|clip\s*officiel|official\s*hd)[\]\)]/gi, '');
+        s = s.replace(/\s*(official\s*(music\s*)?video|video\s*clip|clip\s*officiel|official\s*audio)\b/gi, '');
+        s = s.replace(/\s*\|\s*4K.*$/i, '').replace(/\s*\|\s*HD.*$/i, '');
+        return s.replace(/\s+/g, ' ').trim();
+    }
+
+    // 🎵 Intelligens előadó & dalcím szétválasztó
+    function parseArtistAndTitle(rawTitle) {
+        if (!rawTitle) return { artist: "KÉPBEN! MUSIC", title: "-" };
+        
+        let cleaned = sanitizeMusicTitle(rawTitle);
+        let parts = [];
+
+        if (cleaned.includes(' - ')) parts = cleaned.split(' - ');
+        else if (cleaned.includes(' · ')) parts = cleaned.split(' · ');
+        else if (cleaned.includes(' – ')) parts = cleaned.split(' – ');
+        else if (cleaned.includes(': ')) parts = cleaned.split(': ');
+
+        if (parts.length >= 2) {
+            return {
+                artist: parts[0].trim(),
+                title: parts.slice(1).join(' - ').trim()
+            };
+        }
+
+        return {
+            artist: "KÉPBEN! SLÁGER",
+            title: cleaned
+        };
+    }
+
     // 📖 INTELLIGENS MONDAT-LEZÁRÓ FELDOLGOZÓ (Soha nem vágja el a mondatot a felénél!)
     function formatCompleteSentenceSummary(rawText, maxChars = 340) {
         if (!rawText) return "";
@@ -999,30 +1020,6 @@
             cut = cut.substring(0, lastSpace).trim();
         }
         return cut.replace(/[,;:\-\s]+$/, '') + '.';
-    }
-
-    function parseArtistAndTitle(rawTitle) {
-        if (!rawTitle) return { artist: "KÉPBEN! MUSIC", title: "-" };
-        let cleaned = rawTitle.replace(/\.(mp4|webm|mov|mkv)$/i, '').replace(/_/g, ' ').trim();
-        cleaned = cleaned.replace(/\s*[\[\(](official\s*(music\s*)?video|video|audio|lyrics|4k|hd|hq|clip\s*officiel)[\]\)]/gi, '');
-        
-        let parts = [];
-        if (cleaned.includes(' - ')) parts = cleaned.split(' - ');
-        else if (cleaned.includes(' · ')) parts = cleaned.split(' · ');
-        else if (cleaned.includes(' – ')) parts = cleaned.split(' – ');
-        else if (cleaned.includes(': ')) parts = cleaned.split(': ');
-
-        if (parts.length >= 2) {
-            return {
-                artist: parts[0].trim(),
-                title: parts.slice(1).join(' - ').trim()
-            };
-        }
-
-        return {
-            artist: "KÉPBEN! SLÁGER",
-            title: cleaned
-        };
     }
 
     // ☀️🌙 PONTOS ÉJJEL / NAPPAL IDŐJÁRÁS KÓD ÉS IKON GENERÁLÓ (is_day ALAPJÁN)
@@ -1170,13 +1167,13 @@
 
         const curCat = getDaypartKeyForHour(hourNum);
         
-        // 3. PONT: Órafordulós műsorváltó „Bug” felvillanás a nézőnél is
+        // 3. PONT: Órafordulós műsorváltó „Bug” felvillanás
         if (curCat !== currentActiveDaypartKey) {
             currentActiveDaypartKey = curCat;
             applyDaypartTheme(curCat);
             if (watermarkClean) {
                 watermarkClean.classList.add('bug-flash');
-                setTimeout(() => watermarkClean.classList.remove('bug-flash'), 3500);
+                setTimeout(() => watermarkClean.classList.remove('bug-flash'), 3000);
             }
         }
 
@@ -1238,7 +1235,7 @@
             if (offsetSec < 15) {
                 setTimeout(() => {
                     runTrackPresentationSequence(schedule, true);
-                }, 600);
+                }, 500);
             } else {
                 isIntroBannerRunning = false;
             }
@@ -1270,11 +1267,11 @@
             nmhhRingBox.innerHTML = `<svg class="nmhh-child-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" stroke="#22c55e" stroke-width="8" fill="transparent"/><circle cx="36" cy="40" r="6.5" fill="#22c55e"/><circle cx="64" cy="40" r="6.5" fill="#22c55e"/><path d="M 32 60 Q 50 82 68 60" stroke="#22c55e" stroke-width="8" fill="transparent" stroke-linecap="round"/></svg>`;
         } else if (rating === '18') {
             nmhhRingBox.className = 'nmhh-ring ring-red';
-            nmhhRingBox.style.border = '5px solid #ef4444';
+            nmhhRingBox.style.border = '4.5px solid #ef4444';
             nmhhRingBox.innerHTML = `<span class="nmhh-number">18</span>`;
         } else {
             nmhhRingBox.className = 'nmhh-ring ring-yellow';
-            nmhhRingBox.style.border = '5px solid #facc15';
+            nmhhRingBox.style.border = '4.5px solid #facc15';
             nmhhRingBox.innerHTML = `<span class="nmhh-number">${rating}</span>`;
         }
 
@@ -1517,24 +1514,28 @@
         const nextClip = schedule[(currentClipIndex + 1) % schedule.length];
         const laterClip = schedule[(currentClipIndex + 2) % schedule.length];
 
+        // 1. MOST (5s)
         if (curClip) triggerLowerThirdBanner("MOST", curClip.title, curCat);
 
+        // 2. KÖVETKEZIK (5s)
         bannerSequenceTimers.push(setTimeout(() => {
             if (nextClip && isViewerPlaying) triggerLowerThirdBanner("KÖVETKEZIK", nextClip.title, curCat);
-        }, 5200));
+        }, 5000));
 
+        // 3. KÉSŐBB (5s)
         bannerSequenceTimers.push(setTimeout(() => {
             if (laterClip && isViewerPlaying) triggerLowerThirdBanner("KÉSŐBB", laterClip.title, curCat);
-        }, 10400));
+        }, 10000));
 
+        // 4. KIHÚZ
         bannerSequenceTimers.push(setTimeout(() => {
             lowerThirdBanner.classList.remove('banner-show');
             isIntroBannerRunning = false;
             if (!isIntro) isEndSequenceRunning = false;
-        }, 15800));
+        }, 15000));
     }
 
-    // 📰 HÍRCSÍK ÉS IDŐJÁRÁS CSENDES HÁTTÉRMOTORJA
+    // 📰 HÍRCSÍK ÉS IDŐJÁRÁS CSENDES HÁTTÉRMOTORJA (60 VÁROS, TV 60FPS PUFFER)
     async function fetchLiveNews() {
         try {
             const res = await fetch(`${WORKER_URL}?_t=${Date.now()}`);
@@ -1552,7 +1553,7 @@
                         seen.add(key);
 
                         const rawSummary = item.description || item.lead || item.summary || item.contentSnippet || item.content || "";
-                        const summaryText = formatCompleteSentenceSummary(rawSummary, 340);
+                        const summaryText = formatCompleteSentenceSummary(rawSummary, 280);
 
                         let timeMs = item.date ? new Date(item.date).getTime() : 0;
                         processed.push({
@@ -1564,7 +1565,7 @@
                     }
                     processed.sort((a, b) => b.timeMs - a.timeMs);
                     if (processed.length > 0) {
-                        cachedNewsItems = processed;
+                        cachedNewsItems = processed.slice(0, 10);
                         rebuildNewsTickerContent();
                     }
                 }
@@ -1623,7 +1624,7 @@
             setTimeout(() => {
                 renderCurrentWeatherCity();
                 weatherBoxAnim.classList.remove('switching');
-            }, 250);
+            }, 150);
         }, 10000);
     }
 
@@ -1666,8 +1667,8 @@
 
         setTimeout(() => {
             const trackWidth = tickerCrawlTrack.scrollWidth;
-            const targetSpeedPxPerSec = 75;
-            const calculatedDuration = Math.max(50, Math.round(trackWidth / targetSpeedPxPerSec));
+            const targetSpeedPxPerSec = 70;
+            const calculatedDuration = Math.max(45, Math.round(trackWidth / targetSpeedPxPerSec));
             tickerCrawlTrack.style.animationDuration = `${calculatedDuration}s`;
         }, 100);
     }
@@ -1723,7 +1724,7 @@
         }, 20000);
     }
 
-    // ⚡ VALÓS IDEJŰ STÚDIÓJEL-VEZÉRLŐ ÉS PUSH SZINKRONIZÁCIÓ (FIREBASE REALTIME SSE + POLLING)
+    // ⚡ REALTIME FIREBASE SZINKRONIZÁCIÓ (SSE STREAM & POLLING)
     function applyBroadcastSettingsState(s) {
         if (!s || typeof s !== 'object') return;
         if (s.isBroadcasting !== undefined) isTvBroadcasting = s.isBroadcasting;
@@ -1731,7 +1732,6 @@
         if (s.rating !== undefined) currentAgeRating = s.rating;
         if (s.rating_auto_timer !== undefined) isRatingAutoTimerEnabled = s.rating_auto_timer;
         
-        // Percre pontos időzítő szinkron
         if (s.rating_on_time !== undefined) ratingTimerOnTime = s.rating_on_time;
         else if (s.rating_on_hour !== undefined) ratingTimerOnTime = `${String(s.rating_on_hour).padStart(2, '0')}:00`;
 
@@ -1785,7 +1785,7 @@
             if (!currentScheduledItem || currentScheduledItem.id !== currentlyPlayingId) {
                 checkScheduleAndPlayback(currentSecToday, todaySched);
             } else if (currentScheduledItem && currentScheduledItem.id === currentlyPlayingId) {
-                // Ha a stúdióban átírták a címet miközben adásban van, azonnal frissítjük a nézői sávot!
+                // Ha a stúdióban átírták a címet miközben adásban van, azonnal frissül a nézőnél is!
                 const parsed = parseArtistAndTitle(currentScheduledItem.title);
                 ltArtistRow.textContent = parsed.artist;
                 ltTrackRow.textContent = parsed.title;
@@ -1824,7 +1824,7 @@
             });
         } catch(err) {}
 
-        // Gyors 1.5 másodperces polling a biztonságos szinkronhoz
+        // 1.5 másodperces polling a stabil kapcsolathoz
         setInterval(async () => {
             try {
                 const res = await fetch(`${FIREBASE_URL}/tv_broadcast_settings.json?_t=${Date.now()}`);
