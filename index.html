@@ -583,7 +583,7 @@
     ];
 
     let weekSchedules = {};
-    let isTvBroadcasting = false;
+    let isTvBroadcasting = true; // Alapértelmezetten engedélyezzük az azonnali indítást
     let isViewerPlaying = false;
     let currentClipIndex = -1;
     let currentlyPlayingId = null;
@@ -598,6 +598,7 @@
     let isLogoVisible = true;
     let isVideoEnhanced = false;
     let currentAgeRating = "12";
+    let lastActiveRating = "12";
     let isRatingAutoTimerEnabled = false;
     let ratingTimerOnTime = "06:00";
     let ratingTimerOffTime = "22:00";
@@ -781,6 +782,7 @@
                 const levels = player.getAvailableQualityLevels();
                 if (levels && levels.includes('hd1080')) player.setPlaybackQuality('hd1080');
                 else if (levels && levels.includes('hd720')) player.setPlaybackQuality('hd720');
+                else if (levels && levels.includes('large')) player.setPlaybackQuality('large');
                 else if (player.setPlaybackQuality) player.setPlaybackQuality('highres');
             } else if (player.setPlaybackQuality) {
                 player.setPlaybackQuality('hd1080');
@@ -798,10 +800,11 @@
         return 'kesoeste';
     }
 
+    // 🎯 EGYSÉGESÍTETT DÁTUMKULCS (SZINKRONBAN A STÚDIÓVAL)
     function getSelectedDateKey(dayOffset) {
         const d = new Date();
         d.setDate(d.getDate() + dayOffset);
-        return d.toLocaleDateString('sv-SE');
+        return d.toISOString().split('T')[0];
     }
 
     function cleanHtmlText(raw) {
@@ -913,7 +916,15 @@
             const now = new Date();
             const currentSecToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
             const todayKey = getSelectedDateKey(0);
-            checkScheduleAndPlayback(currentSecToday, weekSchedules[todayKey] || []);
+            
+            // Ha még nem töltődött be az adásterv, újra lekérjük a kettős felhőből
+            if (!weekSchedules[todayKey] || weekSchedules[todayKey].length === 0) {
+                initRealtimeBroadcastSync().then(() => {
+                    checkScheduleAndPlayback(currentSecToday, weekSchedules[todayKey] || []);
+                });
+            } else {
+                checkScheduleAndPlayback(currentSecToday, weekSchedules[todayKey] || []);
+            }
         } else {
             btn.style.background = 'var(--accent-cyan)';
             btn.style.color = '#030712';
@@ -1037,9 +1048,23 @@
         return false;
     }
 
-    // 📺 MASTER ADÁS & STREAM LEJÁTSZÓ MOTOR (NÉZŐI OLDAL)
+    // 📺 MASTER ADÁS & STREAM LEJÁTSZÓ MOTOR (HIBATŰRŐ FELHŐS INDÍTÁSSAL)
     async function checkScheduleAndPlayback(currentSecToday, schedule) {
         if (!isViewerPlaying || transitionLock || currentActiveTwitchStreamer) return;
+
+        if (!schedule || schedule.length === 0) {
+            // Ha a helyi lista üres, lekérjük a Cloudflare Workerből is
+            try {
+                const res = await fetch(`${WORKER_URL}/api/radio/schedule?_t=${Date.now()}`);
+                if (res.ok) {
+                    const cloudData = await res.json();
+                    if (cloudData && Object.keys(cloudData).length > 0) {
+                        applyScheduleState(cloudData);
+                        schedule = weekSchedules[getSelectedDateKey(0)] || [];
+                    }
+                }
+            } catch(e){}
+        }
 
         if (!schedule || schedule.length === 0 || !isTvBroadcasting) {
             showMonoscope();
@@ -1606,7 +1631,7 @@
         }, 8000);
     }
 
-    // ⚡ REALTIME FIREBASE SSE SZINKRONIZÁCIÓ (0% LOCALSTORAGE)
+    // ⚡ KETTŐS FELHŐS SZINKRONIZÁCIÓ (FIREBASE + WORKER FALLBACK)
     function applyBroadcastSettingsState(s) {
         if (!s || typeof s !== 'object') return;
         if (s.isBroadcasting !== undefined) isTvBroadcasting = s.isBroadcasting;
@@ -1622,6 +1647,8 @@
             deckA.classList.toggle('enhanced-mode', isVideoEnhanced);
             deckB.classList.toggle('enhanced-mode', isVideoEnhanced);
         }
+
+        applySavedPositions(s);
 
         const badge = document.getElementById('live-status-badge');
         const text = document.getElementById('live-status-text');
@@ -1645,6 +1672,28 @@
         }
     }
 
+    function applySavedPositions(settings) {
+        const b = settings?.rating_pos_b || "18";
+        const r = settings?.rating_pos_r || "28";
+        const s = settings?.rating_pos_s || "38";
+
+        const lt = settings?.logo_pos_t || "26";
+        const lr = settings?.logo_pos_r || "32";
+        const ls = settings?.logo_scale || "100";
+
+        ageRatingContainer.style.bottom = `${b}px`;
+        ageRatingContainer.style.right = `${r}px`;
+        nmhhRingBox.style.width = `${s}px`;
+        nmhhRingBox.style.height = `${s}px`;
+
+        const numEl = nmhhRingBox.querySelector('.nmhh-number');
+        if (numEl) numEl.style.fontSize = `${s * 0.46}px`;
+
+        watermarkWrap.style.top = `${lt}px`;
+        watermarkWrap.style.right = `${lr}px`;
+        watermarkWrap.style.transform = `scale(${ls / 100})`;
+    }
+
     function applyScheduleState(data) {
         if (!data || typeof data !== 'object') return;
         weekSchedules = data;
@@ -1665,6 +1714,7 @@
     }
 
     async function initRealtimeBroadcastSync() {
+        // 1. Elsődleges lekérdezés Firebase-ből
         try {
             const [setRes, schRes] = await Promise.all([
                 fetch(`${FIREBASE_URL}/tv_broadcast_settings.json?_t=${Date.now()}`),
@@ -1674,6 +1724,20 @@
             if (schRes.ok) applyScheduleState(await schRes.json());
         } catch(e) {}
 
+        // 2. Másodlagos biztonsági lekérdezés Cloudflare Workerből (ha a Firebase üres volt)
+        const todayKey = getSelectedDateKey(0);
+        if (!weekSchedules[todayKey] || weekSchedules[todayKey].length === 0) {
+            try {
+                const [wSetRes, wSchRes] = await Promise.all([
+                    fetch(`${WORKER_URL}/api/radio/settings?_t=${Date.now()}`),
+                    fetch(`${WORKER_URL}/api/radio/schedule?_t=${Date.now()}`)
+                ]);
+                if (wSetRes.ok) applyBroadcastSettingsState(await wSetRes.json());
+                if (wSchRes.ok) applyScheduleState(await wSchRes.json());
+            } catch(e) {}
+        }
+
+        // 3. Valós idejű SSE csatorna (Firebase Server-Sent Events)
         try {
             const settingsSource = new EventSource(`${FIREBASE_URL}/tv_broadcast_settings.json`);
             settingsSource.addEventListener('put', e => {
@@ -1719,7 +1783,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-        initRealtimeBroadcastSync();
+        await initRealtimeBroadcastSync();
         fetchLiveNews();
         fetchLiveWeather();
         startWeatherCityRotator();
