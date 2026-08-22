@@ -380,7 +380,7 @@
         <video id="tv-video-deck-a" class="tv-video-deck active" playsinline preload="auto" webkit-playsinline></video>
         <video id="tv-video-deck-b" class="tv-video-deck" playsinline preload="none" webkit-playsinline></video>
 
-        <!-- 🌐 DUAL YOUTUBE CHROMELESS DECK (TARTALÉK) -->
+        <!-- 🌐 DUAL YOUTUBE CHROMELESS DECK -->
         <div id="tv-embed-deck-a" class="tv-embed-deck">
             <div id="yt-player-target-a" style="width:100%; height:100%;"></div>
         </div>
@@ -913,7 +913,6 @@
             icon.textContent = '⏹';
             text.textContent = 'LEÁLLÍTÁS';
 
-            // Előoldjuk a hardveres dekódert közvetlenül a felhasználói kattintás pillanatában
             deckA.play().catch(()=>{});
             deckB.play().catch(()=>{});
 
@@ -921,7 +920,6 @@
             const currentSecToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
             const todayKey = getSelectedDateKey(0);
             
-            // Azonnali szinkronizált indítás
             checkScheduleAndPlayback(currentSecToday, weekSchedules[todayKey] || []);
         } else {
             btn.style.background = 'var(--accent-cyan)';
@@ -1052,7 +1050,6 @@
             const vId = clip.youtubeId || extractYouTubeVideoId(clip.rawUrl || clip.url);
 
             if (vId) {
-                // YouTube Klip Indítása
                 deckA.pause(); deckB.pause();
                 deckA.style.opacity = '0'; deckB.style.opacity = '0';
 
@@ -1074,7 +1071,6 @@
                     startYtMonitor();
                 }
             } else {
-                // R2 MP4 Klip Indítása
                 clearInterval(ytMonitorInterval);
                 embedDeckA.classList.remove('active'); embedDeckA.style.opacity = '0';
                 embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
@@ -1260,7 +1256,6 @@
         const targetYtId = newClip.youtubeId || extractYouTubeVideoId(newClip.rawUrl || newClip.url);
 
         if (targetYtId) {
-            // YouTube Keresztátúsztatás
             const nextYtDeckName = (activeYtDeck === 'A') ? 'B' : 'A';
             const incomingEmbed = (nextYtDeckName === 'A') ? embedDeckA : embedDeckB;
             const outgoingEmbed = (nextYtDeckName === 'A') ? embedDeckB : embedDeckA;
@@ -1324,7 +1319,6 @@
             return;
         }
 
-        // MP4 Keresztátúsztatás
         const currentDeck = (activeDeckName === 'A') ? deckA : deckB;
         const nextDeck = (activeDeckName === 'A') ? deckB : deckA;
         const nextDeckName = (activeDeckName === 'A') ? 'B' : 'A';
@@ -1621,13 +1615,9 @@
 
         if (isViewerPlaying) {
             applyVisuals();
-            if (!isTvBroadcasting) {
-                showMonoscope();
-            } else if (isMonoscopeActive) {
-                const now = new Date();
-                const currentSecToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-                checkScheduleAndPlayback(currentSecToday, weekSchedules[getSelectedDateKey(0)] || []);
-            }
+            const now = new Date();
+            const currentSecToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            checkScheduleAndPlayback(currentSecToday, weekSchedules[getSelectedDateKey(0)] || []);
         }
     }
 
@@ -1656,7 +1646,7 @@
     function applyScheduleState(data) {
         if (!data || typeof data !== 'object') return;
         weekSchedules = data;
-        if (isViewerPlaying && isTvBroadcasting) {
+        if (isViewerPlaying) {
             const now = new Date();
             const currentSecToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
             const todaySched = weekSchedules[getSelectedDateKey(0)] || [];
@@ -1683,7 +1673,7 @@
             if (schRes.ok) applyScheduleState(await schRes.json());
         } catch(e) {}
 
-        // 2. Cloudflare Worker biztonsági fallback (ha a Firebase üres volt)
+        // 2. Cloudflare Worker biztonsági fallback
         const todayKey = getSelectedDateKey(0);
         if (!weekSchedules[todayKey] || weekSchedules[todayKey].length === 0) {
             try {
