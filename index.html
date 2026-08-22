@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>KÉPBEN! MUSIC TELEVISION · Élő Adás</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,23 +71,40 @@
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
         contain: layout paint size;
+        isolation: isolate;
     }
 
+    /* 🖥️ JAVÍTOTT TELJES KÉPERNYŐS RÉTEGZÉS */
     .tv-screen-wrapper:fullscreen, .tv-screen-wrapper:-webkit-full-screen {
         width: 100vw !important; height: 100vh !important;
         padding-top: 0 !important; border-radius: 0 !important; border: none !important;
+    }
+    .tv-screen-wrapper:fullscreen .tv-watermark-wrap,
+    .tv-screen-wrapper:-webkit-full-screen .tv-watermark-wrap,
+    .tv-screen-wrapper:fullscreen .tv-age-rating-container,
+    .tv-screen-wrapper:-webkit-full-screen .tv-age-rating-container,
+    .tv-screen-wrapper:fullscreen .tv-lower-third-banner,
+    .tv-screen-wrapper:-webkit-full-screen .tv-lower-third-banner,
+    .tv-screen-wrapper:fullscreen .tv-news-glass-container,
+    .tv-screen-wrapper:-webkit-full-screen .tv-news-glass-container,
+    .tv-screen-wrapper:fullscreen .tv-twitch-alert-banner,
+    .tv-screen-wrapper:-webkit-full-screen .tv-twitch-alert-banner,
+    .tv-screen-wrapper:fullscreen .tv-interstitial-screen,
+    .tv-screen-wrapper:-webkit-full-screen .tv-interstitial-screen {
+        z-index: 10000 !important;
     }
 
     /* 🎬 MP4 DUAL-DECK VIDEÓ RÉTEGEK */
     .tv-video-deck {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
-        object-fit: cover; z-index: 1; opacity: 0; pointer-events: none;
+        object-fit: contain; z-index: 1; opacity: 0; pointer-events: none;
+        background: #000;
         transform: translateZ(0);
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
         will-change: opacity;
-        transition: opacity 1.2s ease-in-out;
+        transition: opacity 0.3s ease;
     }
     .tv-video-deck.active { opacity: 1; z-index: 2; }
 
@@ -100,9 +118,8 @@
         opacity: 0;
         pointer-events: none !important;
         background: #000;
-        transform: scale(1.05);
-        transform-origin: center center;
-        transition: opacity 1.2s ease-in-out;
+        transform: none;
+        transition: opacity 0.3s ease;
         will-change: opacity;
     }
     .tv-embed-deck.active {
@@ -136,6 +153,117 @@
     .tv-monoscope-layer.active { display: flex; }
     .monoscope-svg { width: 100%; height: 100%; object-fit: contain; }
 
+    /* ⚡ KREATÍV TECHNIKAI SZÜNET & VISSZASZÁMLÁLÓ BUMPER */
+    .tv-interstitial-screen {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 20;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at 50% 50%, #0b1329 0%, #050811 85%);
+        color: #fff;
+        padding: 24px;
+        text-align: center;
+        user-select: none;
+        opacity: 0;
+        transition: opacity 0.4s ease-in-out;
+        pointer-events: none;
+    }
+    .tv-interstitial-screen.active {
+        display: flex;
+        opacity: 1;
+    }
+    .interstitial-card {
+        background: rgba(15, 23, 42, 0.88);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(56, 189, 248, 0.45);
+        border-radius: 20px;
+        padding: 20px 32px;
+        max-width: 580px;
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .interstitial-header {
+        font-family: 'Space Mono', monospace;
+        font-weight: 900;
+        font-size: 1.15rem;
+        color: var(--accent-cyan);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+    }
+    .interstitial-sub {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #cbd5e1;
+    }
+    .interstitial-countdown-badge {
+        font-family: 'Space Mono', monospace;
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: #facc15;
+        background: rgba(250, 204, 21, 0.12);
+        border: 1.5px solid rgba(250, 204, 21, 0.4);
+        padding: 4px 18px;
+        border-radius: 12px;
+        letter-spacing: 1px;
+    }
+    .interstitial-next-track {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #ffffff;
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 6px 14px;
+        border-radius: 8px;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 📡 TWITCH LIVE ALERT BANNER */
+    .tv-twitch-alert-banner {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(14px) saturate(160%);
+        -webkit-backdrop-filter: blur(14px) saturate(160%);
+        border: 1.5px solid rgba(192, 132, 252, 0.5);
+        border-left: 5px solid var(--accent-purple);
+        border-radius: 12px;
+        padding: 8px 16px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.75);
+        color: #fff;
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        pointer-events: none;
+    }
+    .tv-twitch-alert-banner.active {
+        display: flex;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .twa-left { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+    .twa-title { font-family: 'Space Mono', monospace; font-weight: 900; font-size: 0.85rem; color: #c084fc; display: flex; align-items: center; gap: 8px; }
+    .twa-desc { font-size: 0.74rem; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
+    .twa-badge { font-family: 'Space Mono', monospace; font-size: 0.80rem; font-weight: 800; color: #facc15; background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.4); padding: 4px 10px; border-radius: 8px; flex-shrink: 0; }
+
     /* ⏳ VÁRAKOZÓ / SZÜNET KÉPERNYŐ */
     .tv-standby-screen {
         position: absolute;
@@ -160,20 +288,20 @@
         background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.45); padding: 6px 18px; border-radius: 10px;
     }
 
-    /* 🏷️ JOBB FELSŐ KÉPBEN! VÍZJEL + 🔴 ÉLŐ BADGE */
+    /* 🏷️ JOBB FELSŐ KÉPBEN! VÍZJEL + DISZKRÉT DIGITÁLIS ÓRA ALATTA */
     .tv-watermark-wrap {
         position: absolute;
         top: 26px; right: 32px;
-        z-index: 30;
+        z-index: 9999;
         display: none;
         flex-direction: column;
         align-items: flex-end;
-        gap: 6px;
+        gap: 2px;
         user-select: none;
         pointer-events: none;
         transform-origin: top right;
         transition: top 0.15s ease, right 0.15s ease, transform 0.15s ease, opacity 0.25s ease;
-        opacity: 0.88;
+        opacity: 0.92;
     }
 
     .tv-watermark-clean {
@@ -190,7 +318,6 @@
         text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* 🔴 ÉLŐ ON-AIR BADGE */
     .tv-live-on-air-tag {
         display: none;
         align-items: center;
@@ -213,23 +340,23 @@
         100% { opacity: 1; transform: scale(1.02); filter: drop-shadow(0 0 6px #ef4444); }
     }
 
-    .live-dot-static {
-        width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; margin-left: 3px;
+    .tv-logo-sub-clock {
+        font-family: 'Space Mono', monospace;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #38bdf8;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 3px #000;
+        margin-top: 1px;
+        padding-right: 2px;
     }
-
-    .tv-morning-clock {
-        display: none; font-family: 'Space Mono', monospace; font-weight: 800; font-size: 0.8rem; color: #f59e0b;
-        background: rgba(15, 23, 42, 0.7); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.5);
-        letter-spacing: 0.5px; margin-left: 6px; text-shadow: 0 1px 2px #000;
-    }
-    .tv-morning-clock.active { display: inline-block; }
 
     /* 🎴 LOWER-THIRD ZENEI GRAFIKAI SÁV */
     .tv-lower-third-banner {
         position: absolute;
-        bottom: 74px;
+        bottom: 84px;
         left: 20px;
-        z-index: 33;
+        z-index: 9999;
         display: flex;
         flex-direction: column;
         gap: 3px;
@@ -340,110 +467,101 @@
     }
     .lt-track-row.font-shrink { font-size: 0.78rem; }
 
-    /* 🟡🔴 KORHATÁR KARIKA */
+    /* 🟡🔴 100%-BAN ÁTLÁTSZÓ BELSEJŰ NMHH KORHATÁR KARIKA */
     .tv-age-rating-container {
         position: absolute;
-        bottom: 74px; right: 28px;
-        z-index: 35;
+        bottom: 18px; right: 28px;
+        z-index: 9999;
         display: none;
         align-items: center;
         justify-content: center;
         pointer-events: none;
-        opacity: 0.9;
-        transition: bottom 0.15s ease, right 0.15s ease, width 0.15s ease, height 0.15s ease;
+        opacity: 0.98;
+        transition: all 0.2s ease;
     }
     .nmhh-ring {
-        width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        background: transparent !important;
     }
     .nmhh-ring.ring-yellow { border: 4.5px solid #facc15; }
     .nmhh-ring.ring-red { border: 4.5px solid #ef4444; }
-    .nmhh-number { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 1.05rem; color: #ffffff; line-height: 1; }
-    .nmhh-child-svg { width: 36px; height: 36px; fill: #22c55e; }
+    .nmhh-number { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 1.15rem; color: #ffffff; line-height: 1; text-shadow: 0 2px 4px #000; }
+    .nmhh-child-svg { width: 38px; height: 38px; fill: #22c55e; }
 
-    /* 📰 2026 BROADCAST HÍRSÁV (FÉLÁTTETSZŐ MODERN ÜVEGHATÁS) */
-    .tv-news-ticker-bar {
+    /* 📰 HALVÁNY, HOSSZÚ LEBEGŐ HÍRKÁRTYA + FIX IDŐJÁRÁS DOBOZ */
+    .tv-news-glass-container {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 64px;
-        background: linear-gradient(180deg, rgba(8, 15, 30, 0.65) 0%, rgba(4, 8, 18, 0.82) 100%);
-        backdrop-filter: blur(14px) saturate(180%);
-        -webkit-backdrop-filter: blur(14px) saturate(180%);
-        border-top: 1.5px solid rgba(56, 189, 248, 0.65);
-        z-index: 34;
-        display: flex;
-        align-items: stretch;
-        user-select: none;
-        pointer-events: none;
-        box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.5);
-    }
-
-    .ticker-weather-block {
-        background: rgba(5, 10, 22, 0.55);
-        border-right: 1.5px solid rgba(255, 255, 255, 0.15);
-        padding: 0 12px;
+        bottom: 16px;
+        left: 20px;
+        right: 76px;
+        z-index: 9999;
         display: flex;
         align-items: center;
         gap: 10px;
-        flex-shrink: 0;
-        min-width: 205px;
+        user-select: none;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
     }
-    .ticker-date-badge {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        border-right: 1px solid rgba(255,255,255,0.15);
-        padding-right: 10px;
-        line-height: 1.1;
-    }
-    .ticker-date-lbl { font-family: 'Space Mono', monospace; font-size: 0.68rem; font-weight: 800; color: #facc15; }
-    .ticker-day-lbl { font-family: 'Space Mono', monospace; font-size: 0.54rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; }
 
-    .weather-box-anim { display: flex; align-items: center; gap: 8px; transition: opacity 0.2s ease; }
-    .weather-box-anim.switching { opacity: 0; }
-    .weather-icon-badge { font-size: 1.3rem; line-height: 1; }
-    .weather-info-col { display: flex; flex-direction: column; line-height: 1.1; }
-    .weather-city-lbl { font-family: 'Space Mono', monospace; font-size: 0.64rem; font-weight: 800; color: #ffffff; text-shadow: 0 1px 2px #000; }
-    .weather-temp-lbl { font-family: 'Space Mono', monospace; font-size: 0.80rem; font-weight: 900; color: var(--theme-primary); text-shadow: 0 1px 2px #000; }
-
-    .news-display-viewport {
-        flex: 1;
-        position: relative;
-        overflow: hidden;
+    .glass-weather-badge {
         display: flex;
         align-items: center;
-        padding: 4px 14px;
-        min-width: 0;
+        gap: 8px;
+        background: rgba(5, 10, 22, 0.38);
+        backdrop-filter: blur(10px) saturate(140%);
+        -webkit-backdrop-filter: blur(10px) saturate(140%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 6px 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        flex-shrink: 0;
+        width: 175px;
+        height: 52px;
+        overflow: hidden;
     }
+    .glass-weather-icon { font-size: 1.3rem; line-height: 1; flex-shrink: 0; }
+    .glass-weather-col { display: flex; flex-direction: column; line-height: 1.1; overflow: hidden; }
+    .glass-weather-city { font-family: 'Space Mono', monospace; font-size: 0.62rem; font-weight: 800; color: #ffffff; text-shadow: 0 1px 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .glass-weather-temp { font-family: 'Space Mono', monospace; font-size: 0.82rem; font-weight: 900; color: var(--accent-cyan); text-shadow: 0 1px 3px #000; }
 
-    .news-card-wrapper {
-        width: 100%;
+    .glass-news-card {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 3px;
+        gap: 2px;
+        background: rgba(5, 10, 22, 0.38);
+        backdrop-filter: blur(12px) saturate(150%);
+        -webkit-backdrop-filter: blur(12px) saturate(150%);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-left: 3.5px solid var(--accent-amber);
+        border-radius: 12px;
+        padding: 6px 14px;
+        height: 52px;
+        flex: 1;
+        min-width: 0;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.4);
         opacity: 0;
         transform: translateY(6px);
         transition: opacity 0.35s ease, transform 0.35s ease;
-        min-width: 0;
+        overflow: hidden;
     }
-    .news-card-wrapper.news-visible { opacity: 1; transform: translateY(0); }
-    .news-card-wrapper.news-exit { opacity: 0; transform: translateY(-6px); }
+    .glass-news-card.news-show { opacity: 1; transform: translateY(0); }
+    .glass-news-card.news-hide { opacity: 0; transform: translateY(-6px); }
 
-    .news-headline-row { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; }
-    .news-source-badge {
-        font-family: 'Space Mono', monospace; font-size: 0.62rem; font-weight: 800; color: #facc15;
-        background: rgba(250, 204, 21, 0.2); border: 1px solid rgba(250, 204, 21, 0.45);
-        padding: 2px 7px; border-radius: 4px; flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
+    .glass-news-top-row { display: flex; align-items: center; gap: 6px; overflow: hidden; width: 100%; }
+    .glass-news-badge {
+        font-family: 'Space Mono', monospace; font-size: 0.58rem; font-weight: 900; color: #facc15;
+        background: rgba(250, 204, 21, 0.2); border: 1px solid rgba(250, 204, 21, 0.4);
+        padding: 1px 5px; border-radius: 4px; flex-shrink: 0; text-transform: uppercase;
     }
-    .news-headline-text {
-        font-size: 0.88rem; font-weight: 800; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    .glass-news-time { font-family: 'Space Mono', monospace; font-size: 0.60rem; font-weight: 700; color: #cbd5e1; flex-shrink: 0; }
+    .glass-news-title {
+        font-size: 0.80rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.95);
     }
-    .news-summary-text {
-        font-size: 0.74rem; font-weight: 600; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    .glass-news-summary {
+        font-size: 0.68rem; font-weight: 500; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.95);
     }
 
     /* 📅 MŰSORELŐZETES HUD */
@@ -451,12 +569,13 @@
         position: absolute;
         top: 50px; left: 20px;
         width: 340px; max-width: 48vw;
-        background: rgba(10, 16, 30, 0.95);
+        background: rgba(10, 16, 30, 0.92);
+        backdrop-filter: blur(12px);
         border-left: 4px solid var(--theme-primary);
         border-radius: 12px;
         padding: 10px 14px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-        z-index: 33;
+        z-index: 9999;
         transform: translate3d(-125%, 0, 0);
         opacity: 0;
         transition: transform 0.35s ease, opacity 0.25s linear;
@@ -469,7 +588,7 @@
     .drawer-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 4px; }
     .drawer-title { font-family: 'Space Mono', monospace; font-size: 0.68rem; font-weight: 800; color: var(--theme-primary); display: flex; align-items: center; gap: 6px; }
     .drawer-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow: hidden; }
-    .drawer-item { display: flex; align-items: center; gap: 8px; background: #070c18; padding: 5px 8px; border-radius: 6px; }
+    .drawer-item { display: flex; align-items: center; gap: 8px; background: rgba(7, 12, 24, 0.8); padding: 5px 8px; border-radius: 6px; }
     .drawer-time { font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 800; color: #facc15; background: rgba(250, 204, 21, 0.14); padding: 2px 5px; border-radius: 4px; }
     .drawer-track-meta { display: flex; flex-direction: column; overflow: hidden; }
     .drawer-track-artist { font-family: 'Space Mono', monospace; font-size: 0.64rem; font-weight: 800; color: var(--accent-cyan); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -514,7 +633,7 @@
         .btn-play-tv { padding: 8px 14px; font-size: 0.75rem; }
         .tv-lower-third-banner { width: calc(100% - 40px); max-width: 100%; bottom: 68px; left: 10px; }
         .tv-upcoming-drawer { width: 280px; max-width: 85vw; left: 12px; top: 40px; }
-        .ticker-weather-block { min-width: 165px; padding: 0 8px; }
+        .tv-news-glass-container { right: 65px; left: 10px; bottom: 10px; }
     }
 </style>
 </head>
@@ -528,7 +647,7 @@
         <video id="tv-video-deck-a" class="tv-video-deck active" playsinline preload="auto" webkit-playsinline></video>
         <video id="tv-video-deck-b" class="tv-video-deck" playsinline preload="none" webkit-playsinline></video>
 
-        <!-- 🌐 DUAL YOUTUBE CHROMELESS DECK (AJÁNLÓMENTES MASZKOLÁS) -->
+        <!-- 🌐 DUAL YOUTUBE CHROMELESS DECK (FELIRAT ÉS AJÁNLÓMENTES) -->
         <div id="tv-embed-deck-a" class="tv-embed-deck">
             <div id="yt-player-target-a" style="width:100%; height:100%;"></div>
         </div>
@@ -570,6 +689,33 @@
             </svg>
         </div>
 
+        <!-- ⚡ KREATÍV TECHNIKAI SZÜNET & VISSZASZÁMLÁLÓ BUMPER (ZERO-BLACK-SCREEN) -->
+        <div class="tv-interstitial-screen" id="tv-interstitial-screen">
+            <div class="interstitial-card">
+                <div class="interstitial-header">
+                    <span>⚡ KÉPBEN! TECHNIKAI SZÜNET</span>
+                </div>
+                <div class="interstitial-sub">A következő videóklip érkezik:</div>
+                <div class="interstitial-countdown-badge" id="interstitial-timer-text">00:04</div>
+                <div class="interstitial-next-track" id="interstitial-next-track-text">Következő dal betöltése...</div>
+            </div>
+        </div>
+
+        <!-- 📡 TWITCH LIVE ALERT BANNER -->
+        <div class="tv-twitch-alert-banner" id="tv-twitch-alert-banner">
+            <div class="twa-left">
+                <div class="twa-title">
+                    <span>📡 TWITCH ÉLŐ KÖZVETÍTÉS</span>
+                </div>
+                <div class="twa-desc" id="twa-streamer-desc">
+                    A futó videóklip befejezése után élőben kapcsoljuk: THEVR
+                </div>
+            </div>
+            <div class="twa-badge">
+                🔴 ÉLŐBEN KAPCSOLJUK
+            </div>
+        </div>
+
         <!-- ⏳ VÁRAKOZÓ KÉPERNYŐ -->
         <div class="tv-standby-screen" id="tv-standby-screen">
             <div class="standby-content-box">
@@ -606,32 +752,23 @@
                 </div>
             </div>
 
-            <!-- 📰 2026 BROADCAST HÍRSÁV (FÉLÁTTETSZŐ ÜVEGHATÁS) -->
-            <div class="tv-news-ticker-bar" id="tv-news-ticker-bar">
-                <div class="ticker-weather-block" id="ticker-weather-block">
-                    <div class="ticker-date-badge">
-                        <span class="ticker-date-lbl" id="ticker-live-date">2026.08.21.</span>
-                        <span class="ticker-day-lbl" id="ticker-live-day">PÉNTEK</span>
-                    </div>
-                    <div class="weather-box-anim" id="weather-box-anim">
-                        <span class="weather-icon-badge" id="weather-icon-badge">☀️</span>
-                        <div class="weather-info-col">
-                            <span class="weather-city-lbl" id="weather-city-lbl">BUDAPEST</span>
-                            <span class="weather-temp-lbl" id="weather-temp-lbl">+21.5°C</span>
-                        </div>
+            <!-- 📰 HALVÁNY, HOSSZÚ LEBEGŐ HÍRKÁRTYA + FIX IDŐJÁRÁS DOBOZ -->
+            <div class="tv-news-glass-container" id="tv-news-glass-container">
+                <div class="glass-weather-badge">
+                    <span class="glass-weather-icon" id="weather-icon-badge">☀️</span>
+                    <div class="glass-weather-col">
+                        <span class="glass-weather-city" id="weather-city-lbl">BUDAPEST</span>
+                        <span class="glass-weather-temp" id="weather-temp-lbl">+21.5°C</span>
                     </div>
                 </div>
 
-                <div class="news-display-viewport">
-                    <div class="news-card-wrapper news-visible" id="news-card-box">
-                        <div class="news-headline-row">
-                            <span class="news-source-badge" id="news-source-badge">
-                                <span>📌 MTI</span><span style="opacity:0.5;">|</span><span id="news-time-stamp">MA 10:00</span>
-                            </span>
-                            <div class="news-headline-text" id="news-headline-text">Legfrissebb hírek betöltése...</div>
-                        </div>
-                        <div class="news-summary-text" id="news-summary-text">A hírfolyam automatikusan frissül a háttérben.</div>
+                <div class="glass-news-card news-show" id="news-glass-card">
+                    <div class="glass-news-top-row">
+                        <span class="glass-news-badge" id="news-source-badge">MTI</span>
+                        <span class="glass-news-time" id="news-time-stamp">MA 10:00</span>
+                        <div class="glass-news-title" id="news-headline-text">Legfrissebb hírek betöltése...</div>
                     </div>
+                    <div class="glass-news-summary" id="news-summary-text">A hírfolyam automatikusan frissül a háttérben.</div>
                 </div>
             </div>
 
@@ -649,24 +786,21 @@
                 <div class="drawer-list" id="drawer-upcoming-list"></div>
             </div>
 
-            <!-- 🏷️ JOBB FELSŐ LOGÓ + 🔴 ÉLŐ BADGE -->
+            <!-- 🏷️ JOBB FELSŐ LOGÓ + DISZKRÉT DIGITÁLIS ÓRA -->
             <div class="tv-watermark-wrap" id="tv-watermark-wrap">
-                <div style="display:flex; align-items:center;">
-                    <div class="tv-watermark-clean" id="tv-watermark-clean">
-                        <svg class="kb-icon-mini" viewBox="0 0 24 24">
-                            <path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>
-                            <circle cx="12" cy="12" r="3"/>
-                            <circle cx="12" cy="12" r="8" opacity="0.5"/>
-                        </svg>
-                        <span class="tv-watermark-text-clean">KÉPBEN<span style="color:#ef4444;">!</span><span style="color:#38bdf8; margin-left:1px;">MUSIC</span></span>
-                        <span class="tv-live-on-air-tag" id="tv-live-on-air-tag">🔴 ÉLŐ</span>
-                        <span class="live-dot-static"></span>
-                    </div>
-                    <div class="tv-morning-clock" id="tv-morning-clock">08:00</div>
+                <div class="tv-watermark-clean" id="tv-watermark-clean">
+                    <svg class="kb-icon-mini" viewBox="0 0 24 24">
+                        <path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>
+                        <circle cx="12" cy="12" r="3"/>
+                        <circle cx="12" cy="12" r="8" opacity="0.5"/>
+                    </svg>
+                    <span class="tv-watermark-text-clean">KÉPBEN<span style="color:#ef4444;">!</span><span style="color:#38bdf8; margin-left:1px;">MUSIC</span></span>
+                    <span class="tv-live-on-air-tag" id="tv-live-on-air-tag">🔴 ÉLŐ</span>
                 </div>
+                <div class="tv-logo-sub-clock" id="tv-logo-sub-clock">--:--:--</div>
             </div>
 
-            <!-- 🟡🔴 KORHATÁR KARIKA -->
+            <!-- 🟡🔴 100%-BAN ÁTLÁTSZÓ BELSEJŰ NMHH KORHATÁR KARIKA -->
             <div class="tv-age-rating-container" id="tv-age-rating-container">
                 <div class="nmhh-ring ring-yellow" id="nmhh-ring-box">
                     <span class="nmhh-number" id="nmhh-number-text">12</span>
@@ -684,7 +818,7 @@
         </button>
 
         <div class="live-status-pill" id="live-status-badge">
-            <span class="live-dot-static"></span>
+            <span class="live-dot-static" style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
             <span id="live-status-text">OFFLINE</span>
         </div>
 
@@ -726,10 +860,29 @@
 
     const WORKER_URL = "https://kepbenoszlop.androjid21.workers.dev";
     const FIREBASE_URL = "https://hiroszlop-default-rtdb.europe-west1.firebasedatabase.app";
-    const VIDEO_CROSSFADE_SEC = 8; // 🎚️ 8 MÁSODPERCES LÁGY ÉS ZÖKKENŐMENTES KERESZTÁTÚSZTATÁS
+    const VIDEO_CROSSFADE_SEC = 4.0;
 
     const BASE_SCREEN_WIDTH = 1040;
     let currentScaleRatio = 1;
+
+    // 🛡️ 30+ GARANTÁLTAN ÉLŐ BIZTONSÁGI VÉSZHELYZETI KLIP
+    const EMERGENCY_BACKUP_POOL = [
+        { title: "The Weeknd - Blinding Lights", youtubeId: "4NRXx6U8ABQ", duration: 200, isYouTubeClip: true },
+        { title: "Dua Lipa - Levitating", youtubeId: "TUVcZfQe-Kw", duration: 204, isYouTubeClip: true },
+        { title: "Calvin Harris - Summer", youtubeId: "ebXbLfLACGM", duration: 215, isYouTubeClip: true },
+        { title: "David Guetta - Titanium", youtubeId: "JRfuAukYTKg", duration: 245, isYouTubeClip: true },
+        { title: "Linkin Park - In the End", youtubeId: "eVTXPUF4Oz4", duration: 216, isYouTubeClip: true },
+        { title: "Linkin Park - Numb", youtubeId: "kXYiU_JCYtU", duration: 186, isYouTubeClip: true },
+        { title: "The Prodigy - Breathe", youtubeId: "6_PAHbqq-o4", duration: 240, isYouTubeClip: true },
+        { title: "The Prodigy - Firestarter", youtubeId: "wmin5W4FAC8", duration: 225, isYouTubeClip: true },
+        { title: "Rammstein - Du Hast", youtubeId: "W3q8Od5qJio", duration: 235, isYouTubeClip: true },
+        { title: "Daft Punk - One More Time", youtubeId: "FGBhQbmMxH8", duration: 235, isYouTubeClip: true },
+        { title: "Avicii - Wake Me Up", youtubeId: "IcrbM1l_BoI", duration: 270, isYouTubeClip: true },
+        { title: "Tiësto - The Business", youtubeId: "1_4ELAxKrDc", duration: 164, isYouTubeClip: true }
+    ];
+
+    let emergencyDrawDeck = [];
+    let interstitialTimer = null;
 
     let weekSchedules = {};
     let isTvBroadcasting = false;
@@ -737,8 +890,8 @@
     let currentClipIndex = -1;
     let currentlyPlayingId = null;
     let isMonoscopeActive = false;
-    let activeDeckName = 'A'; // 'A' or 'B'
-    let activeYtDeck = 'A';   // 'A' or 'B'
+    let activeDeckName = 'A';
+    let activeYtDeck = 'A';
     let isVideoTransitioning = false;
     let transitionLock = false;
     let masterVolume = 0.9;
@@ -750,27 +903,30 @@
     let isYtApiReady = false;
     let isYtPlayerAReady = false;
     let isYtPlayerBReady = false;
+    let ytPlayerAState = -1;
+    let ytPlayerBState = -1;
     let ytMonitorInterval = null;
 
     let audioCtx = null;
     let compressorNode = null;
+    let limiterNode = null;
     let autoGainNode = null;
     let masterGainNode = null;
     let analyserNode = null;
     let isAudioInitialized = false;
     let agcMonitorTimer = null;
 
-    // ÁLLAPOTOK & ARCULAT (STÚDIÓVAL SZINKRONIZÁLVA)
+    // ÁLLAPOTOK & ARCULAT (STÚDIÓVAL SZINKRONBAN)
     let isLogoVisible = true;
     let isVideoEnhanced = true;
+    let isNewsGlassManualEnabled = true;
     let currentAgeRating = "12";
     let isRatingAutoTimerEnabled = true;
     let ratingTimerOnTime = "06:00";
-    let ratingTimerOffTime = "21:00";
+    let ratingTimerOffTime = "22:00";
     let currentActiveDaypartKey = 'delelott';
     let liveBadgeMode = 'auto';
-    let monitoredTwitchChannels = [];
-    let isTwitchAutoSwitchEnabled = true;
+    let sourcePlaybackMode = 'hybrid';
     let currentActiveTwitchStreamer = null;
     let twitchPendingSwitchStreamer = null;
     let cloudPositions = null;
@@ -788,6 +944,7 @@
     let cachedWeatherData = [];
     let currentWeatherCityIndex = 0;
     let weatherCityInterval = null;
+    let randomMorningOffsetSeconds = Math.floor(Math.random() * 35);
 
     let upcomingDrawerHideTimer = null;
     let lastDrawerTriggerMinute = -1;
@@ -801,8 +958,15 @@
     const standbyScreen = document.getElementById('tv-standby-screen');
     const standbyResumeTimeEl = document.getElementById('standby-resume-time');
     const watermarkWrap = document.getElementById('tv-watermark-wrap');
+    const logoSubClockEl = document.getElementById('tv-logo-sub-clock');
     const liveOnAirTag = document.getElementById('tv-live-on-air-tag');
-    const morningClockEl = document.getElementById('tv-morning-clock');
+
+    const interstitialScreen = document.getElementById('tv-interstitial-screen');
+    const interstitialTimerText = document.getElementById('interstitial-timer-text');
+    const interstitialNextTrackText = document.getElementById('interstitial-next-track-text');
+
+    const twitchAlertBanner = document.getElementById('tv-twitch-alert-banner');
+    const twaStreamerDesc = document.getElementById('twa-streamer-desc');
     
     const lowerThirdBanner = document.getElementById('tv-lower-third-banner');
     const ltShowTitle = document.getElementById('lt-show-title');
@@ -813,18 +977,16 @@
     const ageRatingContainer = document.getElementById('tv-age-rating-container');
     const nmhhRingBox = document.getElementById('nmhh-ring-box');
 
-    const newsTickerBar = document.getElementById('tv-news-ticker-bar');
-    const newsCardBox = document.getElementById('news-card-box');
+    const newsGlassCard = document.getElementById('news-glass-card');
     const newsSourceBadge = document.getElementById('news-source-badge');
+    const newsTimeStamp = document.getElementById('news-time-stamp');
     const newsHeadlineText = document.getElementById('news-headline-text');
     const newsSummaryText = document.getElementById('news-summary-text');
+    const newsGlassContainer = document.getElementById('tv-news-glass-container');
 
-    const weatherBoxAnim = document.getElementById('weather-box-anim');
     const weatherIconBadge = document.getElementById('weather-icon-badge');
     const weatherCityLbl = document.getElementById('weather-city-lbl');
     const weatherTempLbl = document.getElementById('weather-temp-lbl');
-    const tickerLiveDate = document.getElementById('ticker-live-date');
-    const tickerLiveDay = document.getElementById('ticker-live-day');
 
     const upcomingDrawer = document.getElementById('tv-upcoming-drawer');
     const drawerUpcomingList = document.getElementById('drawer-upcoming-list');
@@ -837,11 +999,11 @@
         delben: { title: "🍽️ KÉPBEN! Délben", primaryColor: "#10b981", gradient: "linear-gradient(135deg, #062419 0%, #047857 100%)" },
         delutan: { title: "🌆 KÉPBEN! Délután", primaryColor: "#06b6d4", gradient: "linear-gradient(135deg, #0b1329 0%, #0e7490 100%)" },
         este: { title: "🎉 KÉPBEN! Este", primaryColor: "#c084fc", gradient: "linear-gradient(135deg, #0b1329 0%, #6b21a8 100%)" },
-        kesoeste: { title: "🌃 KÉPBEN! Késő Este", primaryColor: "#6366f1", gradient: "linear-gradient(135deg, #0b1026 0%, #312e81 100%)" },
+        kesoeste: { title: "🌌 KÉPBEN! Késő Este", primaryColor: "#6366f1", gradient: "linear-gradient(135deg, #0b1026 0%, #312e81 100%)" },
         live: { title: "🔴 KÉPBEN! ÉLŐ KÖZVETÍTÉS", primaryColor: "#ef4444", gradient: "linear-gradient(135deg, #1e0b0b 0%, #7f1d1d 100%)" }
     };
 
-    // 🌐 DUAL YOUTUBE PLAYER INITIALIZATION (1080P KIKÉNYSZERÍTÉS ÉS AJÁNLÓMENTES MASZK)
+    // 🌐 DUAL YOUTUBE PLAYER INITIALIZATION
     window.onYouTubeIframeAPIReady = function() {
         isYtApiReady = true;
         const originUrl = window.location.origin || (window.location.protocol + "//" + window.location.host);
@@ -856,10 +1018,10 @@
                     rel: 0,
                     modestbranding: 1,
                     iv_load_policy: 3,
+                    cc_load_policy: 0,
                     disablekb: 1,
                     fs: 0,
                     playsinline: 1,
-                    cc_load_policy: 0,
                     enablejsapi: 1,
                     suggestedQuality: 'hd1080',
                     origin: originUrl
@@ -867,10 +1029,19 @@
                 events: {
                     onReady: () => { 
                         isYtPlayerAReady = true; 
-                        if (ytPlayerA.setPlaybackQuality) ytPlayerA.setPlaybackQuality('hd1080');
+                        disableYouTubeCaptions(ytPlayerA);
+                        applyBestYouTubeQuality(ytPlayerA);
                     },
-                    onStateChange: (e) => { if (e.data === YT.PlayerState.ENDED) executeVideoCrossfade(true); },
-                    onError: () => { setTimeout(() => executeVideoCrossfade(true), 1200); }
+                    onStateChange: (e) => { 
+                        ytPlayerAState = e.data;
+                        if (e.data === YT.PlayerState.PLAYING) {
+                            disableYouTubeCaptions(ytPlayerA);
+                            applyBestYouTubeQuality(ytPlayerA);
+                            hideInterstitialScreen();
+                        }
+                        if (e.data === YT.PlayerState.ENDED) executeVideoCrossfade(true); 
+                    },
+                    onError: (err) => { handleYouTubePlaybackError(err, 'A'); }
                 }
             });
 
@@ -883,10 +1054,10 @@
                     rel: 0,
                     modestbranding: 1,
                     iv_load_policy: 3,
+                    cc_load_policy: 0,
                     disablekb: 1,
                     fs: 0,
                     playsinline: 1,
-                    cc_load_policy: 0,
                     enablejsapi: 1,
                     suggestedQuality: 'hd1080',
                     origin: originUrl
@@ -894,14 +1065,85 @@
                 events: {
                     onReady: () => { 
                         isYtPlayerBReady = true; 
-                        if (ytPlayerB.setPlaybackQuality) ytPlayerB.setPlaybackQuality('hd1080');
+                        disableYouTubeCaptions(ytPlayerB);
+                        applyBestYouTubeQuality(ytPlayerB);
                     },
-                    onStateChange: (e) => { if (e.data === YT.PlayerState.ENDED) executeVideoCrossfade(true); },
-                    onError: () => { setTimeout(() => executeVideoCrossfade(true), 1200); }
+                    onStateChange: (e) => { 
+                        ytPlayerBState = e.data;
+                        if (e.data === YT.PlayerState.PLAYING) {
+                            disableYouTubeCaptions(ytPlayerB);
+                            applyBestYouTubeQuality(ytPlayerB);
+                            hideInterstitialScreen();
+                        }
+                        if (e.data === YT.PlayerState.ENDED) executeVideoCrossfade(true); 
+                    },
+                    onError: (err) => { handleYouTubePlaybackError(err, 'B'); }
                 }
             });
         } catch(e) {}
     };
+
+    function disableYouTubeCaptions(player) {
+        if (!player) return;
+        try {
+            if (player.unloadModule) player.unloadModule("captions");
+            if (player.setOption) player.setOption('captions', 'track', {});
+        } catch(e){}
+    }
+
+    function applyBestYouTubeQuality(player) {
+        if (!player) return;
+        try {
+            if (player.getAvailableQualityLevels) {
+                const levels = player.getAvailableQualityLevels();
+                if (levels && levels.includes('hd1080')) player.setPlaybackQuality('hd1080');
+                else if (levels && levels.includes('hd720')) player.setPlaybackQuality('hd720');
+                else if (levels && levels.includes('large')) player.setPlaybackQuality('large');
+                else if (player.setPlaybackQuality) player.setPlaybackQuality('highres');
+            } else if (player.setPlaybackQuality) {
+                player.setPlaybackQuality('hd1080');
+            }
+        } catch(e){}
+    }
+
+    function getNextEmergencyBackupClip() {
+        if (emergencyDrawDeck.length === 0) {
+            emergencyDrawDeck = [...EMERGENCY_BACKUP_POOL];
+            for (let i = emergencyDrawDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [emergencyDrawDeck[i], emergencyDrawDeck[j]] = [emergencyDrawDeck[j], emergencyDrawDeck[i]];
+            }
+        }
+        return emergencyDrawDeck.pop() || EMERGENCY_BACKUP_POOL[0];
+    }
+
+    function handleYouTubePlaybackError(err, deckName) {
+        const todayKey = getSelectedDateKey(0);
+        const sched = weekSchedules[todayKey] || [];
+        const currentItem = sched[currentClipIndex];
+
+        if (currentItem && currentItem.url && currentItem.url.includes('http') && !currentItem.url.includes('youtube.com')) {
+            embedDeckA.classList.remove('active'); embedDeckA.style.opacity = '0';
+            embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
+            const activeDeck = (activeDeckName === 'A') ? deckA : deckB;
+            activeDeck.src = currentItem.url;
+            activeDeck.volume = isMuted ? 0 : masterVolume;
+            activeDeck.style.opacity = '1';
+            activeDeck.classList.add('active');
+            activeDeck.play().catch(()=>{});
+            return;
+        }
+
+        const backupClip = getNextEmergencyBackupClip();
+        const targetPlayer = (deckName === 'A') ? ytPlayerA : ytPlayerB;
+        if (targetPlayer && targetPlayer.loadVideoById) {
+            targetPlayer.loadVideoById({ videoId: backupClip.youtubeId, startSeconds: 0 });
+            targetPlayer.unMute();
+            targetPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100));
+        } else {
+            executeVideoCrossfade(true);
+        }
+    }
 
     function getDaypartKeyForHour(hour) {
         if (hour >= 0 && hour < 6) return 'ejjel';
@@ -968,9 +1210,9 @@
     resizeObserver.observe(tvScreenContainer);
 
     function applyCloudPositions() {
-        const b = parseFloat(cloudPositions?.rating_pos_b || 74);
+        const b = parseFloat(cloudPositions?.rating_pos_b || 18);
         const r = parseFloat(cloudPositions?.rating_pos_r || 28);
-        const s = parseFloat(cloudPositions?.rating_pos_s || 36);
+        const s = parseFloat(cloudPositions?.rating_pos_s || 38);
 
         const lt = parseFloat(cloudPositions?.logo_pos_t || 26);
         const lr = parseFloat(cloudPositions?.logo_pos_r || 32);
@@ -1005,9 +1247,16 @@
             compressorNode = audioCtx.createDynamicsCompressor();
             compressorNode.threshold.setValueAtTime(-24, audioCtx.currentTime);
             compressorNode.knee.setValueAtTime(30, audioCtx.currentTime);
-            compressorNode.ratio.setValueAtTime(14, audioCtx.currentTime);
-            compressorNode.attack.setValueAtTime(0.002, audioCtx.currentTime);
-            compressorNode.release.setValueAtTime(0.20, audioCtx.currentTime);
+            compressorNode.ratio.setValueAtTime(12, audioCtx.currentTime);
+            compressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
+            compressorNode.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+            limiterNode = audioCtx.createDynamicsCompressor();
+            limiterNode.threshold.setValueAtTime(-2.5, audioCtx.currentTime);
+            limiterNode.knee.setValueAtTime(0.0, audioCtx.currentTime);
+            limiterNode.ratio.setValueAtTime(20.0, audioCtx.currentTime);
+            limiterNode.attack.setValueAtTime(0.001, audioCtx.currentTime);
+            limiterNode.release.setValueAtTime(0.05, audioCtx.currentTime);
 
             autoGainNode = audioCtx.createGain();
             autoGainNode.gain.setValueAtTime(1.0, audioCtx.currentTime);
@@ -1019,7 +1268,8 @@
             analyserNode.fftSize = 256;
 
             compressorNode.connect(autoGainNode);
-            autoGainNode.connect(analyserNode);
+            autoGainNode.connect(limiterNode);
+            limiterNode.connect(analyserNode);
             analyserNode.connect(masterGainNode);
             masterGainNode.connect(audioCtx.destination);
 
@@ -1036,15 +1286,19 @@
             if (!isViewerPlaying) return;
             analyserNode.getByteFrequencyData(dataArr);
             let sum = 0;
-            for (let i = 0; i < dataArr.length; i++) sum += dataArr[i];
+            let peak = 0;
+            for (let i = 0; i < dataArr.length; i++) {
+                sum += dataArr[i];
+                if (dataArr[i] > peak) peak = dataArr[i];
+            }
             let avg = sum / dataArr.length;
 
-            if (avg > 0 && avg < 30) {
-                autoGainNode.gain.linearRampToValueAtTime(1.4, audioCtx.currentTime + 0.4);
-            } else if (avg > 90) {
-                autoGainNode.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.4);
+            if (avg > 0 && avg < 35) {
+                autoGainNode.gain.linearRampToValueAtTime(1.4, audioCtx.currentTime + 0.3);
+            } else if (avg > 95) {
+                autoGainNode.gain.linearRampToValueAtTime(0.75, audioCtx.currentTime + 0.3);
             } else {
-                autoGainNode.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 0.4);
+                autoGainNode.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 0.3);
             }
         }, 500);
     }
@@ -1098,6 +1352,8 @@
             embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
             hideMonoscope();
             hideStandby();
+            hideInterstitialScreen();
+            twitchAlertBanner.classList.remove('active');
             hideLowerThirdImmediate();
             upcomingDrawer.classList.remove('drawer-show');
             currentlyPlayingId = null;
@@ -1110,26 +1366,15 @@
 
     function updateClock() {
         const now = new Date();
-        const y = now.getFullYear();
-        const mo = String(now.getMonth() + 1).padStart(2, '0');
-        const dt = String(now.getDate()).padStart(2, '0');
+        const timeStr = now.toLocaleTimeString('hu-HU');
+        if (logoSubClockEl) logoSubClockEl.textContent = timeStr;
+
+        const monoClock = document.getElementById('mono-live-clock');
+        if (monoClock) monoClock.textContent = timeStr;
+
         const h = now.getHours();
         const m = now.getMinutes();
         const s = now.getSeconds();
-
-        const dayNamesHu = ["VASÁRNAP", "HÉTFŐ", "KEDD", "SZERDA", "CSÜTÖRTÖK", "PÉNTEK", "SZOMBAT"];
-        if (tickerLiveDate) tickerLiveDate.textContent = `${y}.${mo}.${dt}.`;
-        if (tickerLiveDay) tickerLiveDay.textContent = dayNamesHu[now.getDay()];
-
-        const monoClock = document.getElementById('mono-live-clock');
-        if (monoClock) monoClock.textContent = now.toLocaleTimeString('hu-HU');
-
-        if (h >= 6 && h < 10) {
-            morningClockEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            morningClockEl.classList.add('active');
-        } else {
-            morningClockEl.classList.remove('active');
-        }
 
         const curCat = getDaypartKeyForHour(h);
         if (curCat !== currentActiveDaypartKey) {
@@ -1152,7 +1397,7 @@
                 const curClip = schedule[expectedIdx];
                 const remainingSec = curClip.endSec - curSec;
 
-                if (remainingSec <= 26 && remainingSec > (VIDEO_CROSSFADE_SEC + 1) && !isEndSequenceRunning) {
+                if (remainingSec <= 20 && remainingSec > (VIDEO_CROSSFADE_SEC + 1) && !isEndSequenceRunning) {
                     runTrackPresentationSequence(schedule, false);
                 }
 
@@ -1168,6 +1413,30 @@
         const conf = tvDaypartConfig[cat] || tvDaypartConfig.delelott;
         document.documentElement.style.setProperty('--theme-primary', conf.primaryColor);
         document.documentElement.style.setProperty('--theme-gradient', conf.gradient);
+    }
+
+    // ⚡ KREATÍV TECHNIKAI SZÜNET KÉPERNYŐ VEZÉRLÉS
+    function showInterstitialScreen(nextTitle, secondsRemaining = 4) {
+        interstitialNextTrackText.textContent = nextTitle ? `🎵 ${nextTitle}` : "Következő klip előkészítése...";
+        let countdown = Math.max(1, Math.round(secondsRemaining));
+        interstitialTimerText.textContent = `00:0${countdown}`;
+        interstitialScreen.classList.add('active');
+
+        if (interstitialTimer) clearInterval(interstitialTimer);
+        interstitialTimer = setInterval(() => {
+            countdown--;
+            if (countdown <= 0) {
+                clearInterval(interstitialTimer);
+                hideInterstitialScreen();
+            } else {
+                interstitialTimerText.textContent = `00:0${countdown}`;
+            }
+        }, 1000);
+    }
+
+    function hideInterstitialScreen() {
+        if (interstitialTimer) clearInterval(interstitialTimer);
+        interstitialScreen.classList.remove('active');
     }
 
     // 📺 MASTER ADÁS & STREAM LEJÁTSZÓ MOTOR (NÉZŐI OLDAL)
@@ -1193,19 +1462,20 @@
             isEndSequenceRunning = false;
             isIntroBannerRunning = true;
 
-            if (clip.rating && clip.rating !== 'default') {
-                applyAgeRating(clip.rating);
-            }
-
+            applyAgeRating(clip.rating || currentAgeRating);
             updateLiveBadgeUI(Boolean(clip.isStream));
             applyDaypartTheme(clip.cat);
 
-            // 🌐 A) YOUTUBE KLIP LEJÁTSZÁSA
-            if (clip.youtubeId || clip.isYouTubeClip) {
+            let shouldPlayOnYt = false;
+            if (sourcePlaybackMode === 'yt_only') shouldPlayOnYt = true;
+            else if (sourcePlaybackMode === 'r2_only') shouldPlayOnYt = false;
+            else shouldPlayOnYt = Boolean(clip.youtubeId || clip.isYouTubeClip);
+
+            if (shouldPlayOnYt) {
                 deckA.pause(); deckB.pause();
                 deckA.style.opacity = '0'; deckB.style.opacity = '0';
 
-                const targetYtId = clip.youtubeId || extractYouTubeVideoId(clip.rawUrl || clip.url);
+                const targetYtId = clip.youtubeId || extractYouTubeVideoId(clip.rawUrl || clip.url) || getNextEmergencyBackupClip().youtubeId;
                 const activePlayer = (activeYtDeck === 'A') ? ytPlayerA : ytPlayerB;
                 const activeEmbedDeck = (activeYtDeck === 'A') ? embedDeckA : embedDeckB;
                 const otherEmbedDeck = (activeYtDeck === 'A') ? embedDeckB : embedDeckA;
@@ -1219,10 +1489,11 @@
                     activePlayer.loadVideoById({ videoId: targetYtId, startSeconds: Math.floor(offsetSec) });
                     activePlayer.unMute();
                     activePlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100));
+                    disableYouTubeCaptions(activePlayer);
+                    applyBestYouTubeQuality(activePlayer);
                     startYtMonitor();
                 }
             } else {
-                // 🎬 B) MP4 VIDEÓKLIP LEJÁTSZÁSA
                 clearInterval(ytMonitorInterval);
                 embedDeckA.classList.remove('active'); embedDeckA.style.opacity = '0';
                 embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
@@ -1235,7 +1506,7 @@
                 activeDeck.volume = isMuted ? 0 : masterVolume;
                 activeDeck.style.opacity = '1';
                 activeDeck.classList.add('active');
-                activeDeck.play().catch(() => {});
+                activeDeck.play().then(() => hideInterstitialScreen()).catch(() => {});
             }
 
             if (offsetSec < 12) {
@@ -1312,6 +1583,22 @@
         }
 
         ageRatingContainer.style.display = 'flex';
+
+        // Hírsáv éjszakai levétele & reggeli random visszatérése
+        const now = new Date();
+        const curH = now.getHours();
+        const curM = now.getMinutes();
+        const curS = now.getSeconds();
+
+        if (isViewerPlaying && isNewsGlassManualEnabled) {
+            if (curH >= 22 || curH < 6) {
+                newsGlassContainer.style.display = 'none';
+            } else if (curH === 6 && curM === 0 && curS < randomMorningOffsetSeconds) {
+                newsGlassContainer.style.display = 'none';
+            } else {
+                newsGlassContainer.style.display = 'flex';
+            }
+        }
     }
 
     function showStandby(resumeTimeStr) {
@@ -1324,6 +1611,7 @@
         embedDeckA.classList.remove('active'); embedDeckA.style.opacity = '0';
         embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
         hideMonoscope();
+        hideInterstitialScreen();
         hideLowerThirdImmediate();
         upcomingDrawer.classList.remove('drawer-show');
         currentlyPlayingId = null;
@@ -1349,6 +1637,7 @@
             embedDeckA.classList.remove('active'); embedDeckA.style.opacity = '0';
             embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
             hideLowerThirdImmediate();
+            hideInterstitialScreen();
             upcomingDrawer.classList.remove('drawer-show');
             hideStandby();
             updateLiveBadgeUI(false);
@@ -1374,19 +1663,24 @@
             const dur = activePlayer.getDuration();
             const remaining = dur - curTime;
 
-            if (remaining <= 26 && remaining > (VIDEO_CROSSFADE_SEC + 1) && !isEndSequenceRunning) {
+            if (remaining <= 20 && remaining > (VIDEO_CROSSFADE_SEC + 1) && !isEndSequenceRunning) {
                 const todayKey = getSelectedDateKey(0);
                 runTrackPresentationSequence(weekSchedules[todayKey] || [], false);
             }
 
-            if (dur > 0 && remaining <= VIDEO_CROSSFADE_SEC) {
+            if (dur > 0 && remaining <= VIDEO_CROSSFADE_SEC && remaining > 0) {
                 clearInterval(ytMonitorInterval);
                 executeVideoCrossfade(false);
             }
-        }, 250);
+        }, 200);
     }
 
     function executeVideoCrossfade(forceImmediate = false) {
+        if (twitchPendingSwitchStreamer) {
+            switchToTwitchLiveImmediate(twitchPendingSwitchStreamer);
+            return;
+        }
+
         const todayKey = getSelectedDateKey(0);
         const schedule = weekSchedules[todayKey] || [];
         if (isVideoTransitioning || transitionLock || schedule.length === 0) return;
@@ -1400,11 +1694,14 @@
         const newClip = schedule[currentClipIndex];
         currentlyPlayingId = newClip.id;
 
-        applyAgeRating(newClip.rating);
+        applyAgeRating(newClip.rating || currentAgeRating);
         updateLiveBadgeUI(Boolean(newClip.isStream));
         applyDaypartTheme(newClip.cat);
 
-        const isNextYt = Boolean(newClip.youtubeId || newClip.isYouTubeClip);
+        let isNextYt = false;
+        if (sourcePlaybackMode === 'yt_only') isNextYt = true;
+        else if (sourcePlaybackMode === 'r2_only') isNextYt = false;
+        else isNextYt = Boolean(newClip.youtubeId || newClip.isYouTubeClip);
 
         if (isNextYt) {
             const nextYtDeckName = (activeYtDeck === 'A') ? 'B' : 'A';
@@ -1413,7 +1710,7 @@
             const incomingPlayer = (nextYtDeckName === 'A') ? ytPlayerA : ytPlayerB;
             const outgoingPlayer = (nextYtDeckName === 'A') ? ytPlayerB : ytPlayerA;
             const outgoingVideo = (activeDeckName === 'A') ? deckA : deckB;
-            const targetYtId = newClip.youtubeId || extractYouTubeVideoId(newClip.rawUrl || newClip.url);
+            const targetYtId = newClip.youtubeId || extractYouTubeVideoId(newClip.rawUrl || newClip.url) || getNextEmergencyBackupClip().youtubeId;
 
             incomingEmbed.classList.add('active');
             incomingEmbed.style.opacity = '0';
@@ -1422,40 +1719,57 @@
                 incomingPlayer.loadVideoById({ videoId: targetYtId, startSeconds: 0 });
                 incomingPlayer.unMute();
                 incomingPlayer.setVolume(0);
+                disableYouTubeCaptions(incomingPlayer);
+                applyBestYouTubeQuality(incomingPlayer);
             }
 
-            let step = 0;
-            const steps = 80;
-            const timer = setInterval(() => {
-                step++;
-                const p = step / steps;
-                const inVolCurve = Math.sin(p * Math.PI / 2);
-                const outVolCurve = Math.cos(p * Math.PI / 2);
+            let waitForPlayAttempts = 0;
+            const checkPlayStateInterval = setInterval(() => {
+                waitForPlayAttempts++;
+                const isPlaying = (nextYtDeckName === 'A' ? ytPlayerAState : ytPlayerBState) === YT.PlayerState.PLAYING;
 
-                incomingEmbed.style.opacity = inVolCurve.toFixed(3);
-                if (incomingPlayer && incomingPlayer.setVolume) incomingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * inVolCurve));
+                if (!isPlaying && waitForPlayAttempts > 6 && !interstitialScreen.classList.contains('active')) {
+                    showInterstitialScreen(newClip.title, 4);
+                }
 
-                outgoingEmbed.style.opacity = outVolCurve.toFixed(3);
-                if (outgoingPlayer && outgoingPlayer.setVolume) outgoingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * outVolCurve));
+                if (isPlaying || waitForPlayAttempts > 25) {
+                    clearInterval(checkPlayStateInterval);
 
-                outgoingVideo.style.opacity = outVolCurve.toFixed(3);
-                outgoingVideo.volume = Math.max(0, (isMuted ? 0 : masterVolume) * outVolCurve);
+                    let step = 0;
+                    const steps = 35;
+                    const timer = setInterval(() => {
+                        step++;
+                        const p = step / steps;
+                        const inVolCurve = Math.sin(p * Math.PI / 2);
+                        const outVolCurve = Math.cos(p * Math.PI / 2);
 
-                if (step >= steps) {
-                    clearInterval(timer);
-                    outgoingEmbed.classList.remove('active');
-                    outgoingEmbed.style.opacity = '0';
-                    if (outgoingPlayer && outgoingPlayer.stopVideo) outgoingPlayer.stopVideo();
+                        incomingEmbed.style.opacity = inVolCurve.toFixed(3);
+                        if (incomingPlayer && incomingPlayer.setVolume) incomingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * inVolCurve));
 
-                    outgoingVideo.pause();
-                    outgoingVideo.classList.remove('active');
-                    outgoingVideo.style.opacity = '0';
+                        outgoingEmbed.style.opacity = outVolCurve.toFixed(3);
+                        if (outgoingPlayer && outgoingPlayer.setVolume) outgoingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * outVolCurve));
 
-                    activeYtDeck = nextYtDeckName;
-                    isVideoTransitioning = false;
-                    transitionLock = false;
-                    startYtMonitor();
-                    runTrackPresentationSequence(schedule, true);
+                        outgoingVideo.style.opacity = outVolCurve.toFixed(3);
+                        outgoingVideo.volume = Math.max(0, (isMuted ? 0 : masterVolume) * outVolCurve);
+
+                        if (step >= steps) {
+                            clearInterval(timer);
+                            outgoingEmbed.classList.remove('active');
+                            outgoingEmbed.style.opacity = '0';
+                            if (outgoingPlayer && outgoingPlayer.stopVideo) outgoingPlayer.stopVideo();
+
+                            outgoingVideo.pause();
+                            outgoingVideo.classList.remove('active');
+                            outgoingVideo.style.opacity = '0';
+
+                            hideInterstitialScreen();
+                            activeYtDeck = nextYtDeckName;
+                            isVideoTransitioning = false;
+                            transitionLock = false;
+                            startYtMonitor();
+                            runTrackPresentationSequence(schedule, true);
+                        }
+                    }, 100);
                 }
             }, 100);
             return;
@@ -1472,42 +1786,51 @@
         nextDeck.volume = 0;
         nextDeck.style.opacity = '0';
         nextDeck.classList.add('active');
-        nextDeck.play().catch(() => {});
 
-        let step = 0;
-        const steps = 80;
-        const timer = setInterval(() => {
-            step++;
-            const p = step / steps;
-            const inVolCurve = Math.sin(p * Math.PI / 2);
-            const outVolCurve = Math.cos(p * Math.PI / 2);
+        const startMp4Crossfade = () => {
+            let step = 0;
+            const steps = 35;
+            const timer = setInterval(() => {
+                step++;
+                const p = step / steps;
+                const inVolCurve = Math.sin(p * Math.PI / 2);
+                const outVolCurve = Math.cos(p * Math.PI / 2);
 
-            nextDeck.style.opacity = inVolCurve.toFixed(3);
-            nextDeck.volume = Math.min(isMuted ? 0 : masterVolume, (isMuted ? 0 : masterVolume) * inVolCurve);
+                nextDeck.style.opacity = inVolCurve.toFixed(3);
+                nextDeck.volume = Math.min(isMuted ? 0 : masterVolume, (isMuted ? 0 : masterVolume) * inVolCurve);
 
-            currentDeck.style.opacity = outVolCurve.toFixed(3);
-            currentDeck.volume = Math.max(0, (isMuted ? 0 : masterVolume) * outVolCurve);
+                currentDeck.style.opacity = outVolCurve.toFixed(3);
+                currentDeck.volume = Math.max(0, (isMuted ? 0 : masterVolume) * outVolCurve);
 
-            activeYtEmbed.style.opacity = outVolCurve.toFixed(3);
-            if (activeYtPlayer && activeYtPlayer.setVolume) activeYtPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * outVolCurve));
+                activeYtEmbed.style.opacity = outVolCurve.toFixed(3);
+                if (activeYtPlayer && activeYtPlayer.setVolume) activeYtPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * outVolCurve));
 
-            if (step >= steps) {
-                clearInterval(timer);
-                currentDeck.pause();
-                currentDeck.src = "";
-                currentDeck.classList.remove('active');
-                currentDeck.style.opacity = '0';
+                if (step >= steps) {
+                    clearInterval(timer);
+                    currentDeck.pause();
+                    currentDeck.src = "";
+                    currentDeck.classList.remove('active');
+                    currentDeck.style.opacity = '0';
 
-                activeYtEmbed.classList.remove('active');
-                activeYtEmbed.style.opacity = '0';
-                if (activeYtPlayer && activeYtPlayer.stopVideo) activeYtPlayer.stopVideo();
+                    activeYtEmbed.classList.remove('active');
+                    activeYtEmbed.style.opacity = '0';
+                    if (activeYtPlayer && activeYtPlayer.stopVideo) activeYtPlayer.stopVideo();
 
-                activeDeckName = nextDeckName;
-                isVideoTransitioning = false;
-                transitionLock = false;
-                runTrackPresentationSequence(schedule, true);
-            }
-        }, 100);
+                    hideInterstitialScreen();
+                    activeDeckName = nextDeckName;
+                    isVideoTransitioning = false;
+                    transitionLock = false;
+                    runTrackPresentationSequence(schedule, true);
+                }
+            }, 100);
+        };
+
+        nextDeck.play().then(() => {
+            startMp4Crossfade();
+        }).catch(() => {
+            showInterstitialScreen(newClip.title, 3);
+            setTimeout(startMp4Crossfade, 500);
+        });
     }
 
     function triggerLowerThirdBanner(type, rawTrackTitle, showCat) {
@@ -1566,16 +1889,16 @@
 
             bannerSequenceTimers.push(setTimeout(() => {
                 if (nextClip && isViewerPlaying) triggerLowerThirdBanner("KÖVETKEZIK", nextClip.title, curCat);
-            }, 6000));
+            }, 5500));
 
             bannerSequenceTimers.push(setTimeout(() => {
                 if (laterClip && isViewerPlaying) triggerLowerThirdBanner("KÉSŐBB", laterClip.title, curCat);
-            }, 12000));
+            }, 11000));
 
             bannerSequenceTimers.push(setTimeout(() => {
                 lowerThirdBanner.classList.remove('banner-show');
                 isEndSequenceRunning = false;
-            }, 18000));
+            }, 16000));
         }
     }
 
@@ -1622,7 +1945,7 @@
         const isToday = d.toDateString() === now.toDateString();
         const hh = String(d.getHours()).padStart(2, '0');
         const mm = String(d.getMinutes()).padStart(2, '0');
-        return isToday ? `MA ${hh}:${mm}` : `${d.getMonth()+1}.${d.getDate()}. ${hh}:${mm}`;
+        return isToday ? `${hh}:${mm}` : `${d.getMonth()+1}.${d.getDate()}.`;
     }
 
     function displayNextNewsCard() {
@@ -1632,20 +1955,39 @@
         if (currentNewsItemIndex >= activeNewsQueue.length) currentNewsItemIndex = 0;
         const item = activeNewsQueue[currentNewsItemIndex];
 
-        newsCardBox.classList.remove('news-visible');
-        newsCardBox.classList.add('news-exit');
+        newsGlassCard.classList.remove('news-show');
+        newsGlassCard.classList.add('news-hide');
 
         setTimeout(() => {
             newsHeadlineText.textContent = item.title;
-            newsSummaryText.textContent = item.summary || "A hír részleteit és a teljes műsort keresse a KÉPBEN! Music Television online felületein.";
-            newsSourceBadge.innerHTML = `<span>📌 ${item.source}</span><span style="opacity:0.5;">|</span><span>${item.timeStr}</span>`;
+            newsSummaryText.textContent = item.summary || "A legfrissebb részletekért látogasson el online felületeinkre.";
+            newsSourceBadge.textContent = item.source;
+            newsTimeStamp.textContent = item.timeStr;
 
-            newsCardBox.classList.remove('news-exit');
-            newsCardBox.classList.add('news-visible');
+            newsGlassCard.classList.remove('news-hide');
+            newsGlassCard.classList.add('news-show');
 
             currentNewsItemIndex = (currentNewsItemIndex + 1) % activeNewsQueue.length;
-            newsRotationTimer = setTimeout(displayNextNewsCard, 11000);
+            newsRotationTimer = setTimeout(displayNextNewsCard, 9500);
         }, 320);
+    }
+
+    function decodeWmoWeather(code, isDay = 1) {
+        const isNight = (isDay === 0);
+        if (code === 0) return isNight ? { icon: "🌙", text: "Tiszta csillagos ég" } : { icon: "☀️", text: "Tiszta, napos idő" };
+        if (code === 1) return isNight ? { icon: "🌙⛅", text: "Alig felhős éjjel" } : { icon: "🌤️", text: "Túlnyomóan derült" };
+        if (code === 2) return isNight ? { icon: "☁️🌙", text: "Részben felhős" } : { icon: "⛅", text: "Változóan felhős" };
+        if (code === 3) return { icon: "☁️", text: "Borult égbolt" };
+        if (code === 45 || code === 48) return { icon: "🌫️", text: "Párás, ködös idő" };
+        if (code >= 51 && code <= 55) return { icon: "🌦️", text: "Szitálás" };
+        if (code === 56 || code === 57) return { icon: "🌧️", text: "Ónos szitálás" };
+        if (code >= 61 && code <= 65) return { icon: "🌧️", text: "Esőzés" };
+        if (code === 66 || code === 67) return { icon: "🌧️", text: "Ónos eső" };
+        if (code >= 71 && code <= 77) return { icon: "❄️", text: "Havazás" };
+        if (code >= 80 && code <= 82) return { icon: "🌦️", text: "Záporeső" };
+        if (code === 85 || code === 86) return { icon: "🌨️", text: "Hózápor" };
+        if (code >= 95 && code <= 99) return { icon: "⛈️", text: "Zivatar" };
+        return isNight ? { icon: "🌙", text: "Csendes éjszaka" } : { icon: "🌤️", text: "Kellemes idő" };
     }
 
     async function fetchLiveWeather() {
@@ -1676,11 +2018,7 @@
         weatherCityInterval = setInterval(() => {
             if (cachedWeatherData.length === 0) return;
             currentWeatherCityIndex = (currentWeatherCityIndex + 1) % cachedWeatherData.length;
-            weatherBoxAnim.classList.add('switching');
-            setTimeout(() => {
-                renderCurrentWeatherCity();
-                weatherBoxAnim.classList.remove('switching');
-            }, 180);
+            renderCurrentWeatherCity();
         }, 8000);
     }
 
@@ -1732,13 +2070,14 @@
         }, 20000);
     }
 
-    // ⚡ REALTIME FIREBASE SZINKRONIZÁCIÓ (STUDIO ÁLLAPOT KÖVETÉSE)
+    // ⚡ REALTIME FIREBASE SZINKRONIZÁCIÓ (STÚDIÓ ÁLLAPOTOK AZONNALI KÖVETÉSE)
     function applyBroadcastSettingsState(s) {
         if (!s || typeof s !== 'object') return;
         if (s.isBroadcasting !== undefined) isTvBroadcasting = s.isBroadcasting;
         if (s.logo_visible !== undefined) isLogoVisible = s.logo_visible;
         if (s.rating !== undefined) currentAgeRating = s.rating;
         if (s.live_badge_mode !== undefined) liveBadgeMode = s.live_badge_mode;
+        if (s.source_playback_mode !== undefined) sourcePlaybackMode = s.source_playback_mode;
         if (s.rating_auto_timer !== undefined) isRatingAutoTimerEnabled = s.rating_auto_timer;
         if (s.rating_on_time !== undefined) ratingTimerOnTime = s.rating_on_time;
         if (s.rating_off_time !== undefined) ratingTimerOffTime = s.rating_off_time;
