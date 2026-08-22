@@ -94,7 +94,7 @@
         z-index: 10000 !important;
     }
 
-    /* 🎬 MP4 DUAL-DECK VIDEÓ RÉTEGEK */
+    /* 🎬 MP4 DUAL-DECK VIDEÓ RÉTEGEK (100% REKLÁMMENTES KÖZVETLEN STREAM) */
     .tv-video-deck {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -108,7 +108,7 @@
     }
     .tv-video-deck.active { opacity: 1; z-index: 2; }
 
-    /* 🌐 DUAL YOUTUBE CHROMELESS DECK (AJÁNLÓMENTES MASZKOLÁS) */
+    /* 🌐 DUAL YOUTUBE / TWITCH BEÁGYAZOTT RÉTEGEK */
     .tv-embed-deck {
         position: absolute;
         top: 0; left: 0;
@@ -153,7 +153,7 @@
     .tv-monoscope-layer.active { display: flex; }
     .monoscope-svg { width: 100%; height: 100%; object-fit: contain; }
 
-    /* ⚡ KREATÍV TECHNIKAI SZÜNET & VISSZASZÁMLÁLÓ BUMPER */
+    /* ⚡ KREATÍV TECHNIKAI SZÜNET & VISSZASZÁMLÁLÓ BUMPER (ZERO-BLACK-SCREEN) */
     .tv-interstitial-screen {
         position: absolute;
         top: 0; left: 0;
@@ -643,11 +643,11 @@
 
     <!-- 📺 DUAL-DECK TV KÉPERNYŐ + BEÁGYAZOTT STREAM DECK -->
     <div class="tv-screen-wrapper" id="tv-screen-container">
-        <!-- 🎬 MP4 DUAL-DECK -->
+        <!-- 🎬 MP4 DUAL-DECK (100% REKLÁMMENTES KÖZVETLEN STREAM) -->
         <video id="tv-video-deck-a" class="tv-video-deck active" playsinline preload="auto" webkit-playsinline></video>
         <video id="tv-video-deck-b" class="tv-video-deck" playsinline preload="none" webkit-playsinline></video>
 
-        <!-- 🌐 DUAL YOUTUBE CHROMELESS DECK (FELIRAT ÉS AJÁNLÓMENTES) -->
+        <!-- 🌐 DUAL YOUTUBE CHROMELESS DECK (TARTALÉK) -->
         <div id="tv-embed-deck-a" class="tv-embed-deck">
             <div id="yt-player-target-a" style="width:100%; height:100%;"></div>
         </div>
@@ -1364,83 +1364,35 @@
         }
     }
 
-    function updateClock() {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('hu-HU');
-        if (logoSubClockEl) logoSubClockEl.textContent = timeStr;
-
-        const monoClock = document.getElementById('mono-live-clock');
-        if (monoClock) monoClock.textContent = timeStr;
-
-        const h = now.getHours();
-        const m = now.getMinutes();
-        const s = now.getSeconds();
-
-        const curCat = getDaypartKeyForHour(h);
-        if (curCat !== currentActiveDaypartKey) {
-            currentActiveDaypartKey = curCat;
-            applyDaypartTheme(curCat);
+    // 🚫 100% REKLÁMMENTES KÖZVETLEN STREAM BETÖLTŐ (HTML5 DECK)
+    async function loadCleanDirectStream(clip, targetDeck, offset = 0) {
+        const vId = clip.youtubeId || extractYouTubeVideoId(clip.rawUrl || clip.url);
+        
+        if (!vId) {
+            targetDeck.src = clip.url;
+            targetDeck.currentTime = offset;
+            targetDeck.play().catch(()=>{});
+            return true;
         }
 
-        evaluateAgeRatingVisibility();
-        evaluateUpcomingDrawerSchedule(h, m, s);
-
-        if (isViewerPlaying && isTvBroadcasting && !isVideoTransitioning && !transitionLock && !currentActiveTwitchStreamer) {
-            const todayKey = getSelectedDateKey(0);
-            const schedule = weekSchedules[todayKey] || [];
-            const curSec = h * 3600 + m * 60 + s;
-
-            const expectedIdx = schedule.findIndex(item => curSec >= item.startSec && curSec < item.endSec);
-            if (expectedIdx !== -1 && expectedIdx !== currentClipIndex) {
-                checkScheduleAndPlayback(curSec, schedule);
-            } else if (expectedIdx !== -1) {
-                const curClip = schedule[expectedIdx];
-                const remainingSec = curClip.endSec - curSec;
-
-                if (remainingSec <= 20 && remainingSec > (VIDEO_CROSSFADE_SEC + 1) && !isEndSequenceRunning) {
-                    runTrackPresentationSequence(schedule, false);
-                }
-
-                if (remainingSec <= VIDEO_CROSSFADE_SEC && remainingSec >= 0) {
-                    executeVideoCrossfade(false);
+        try {
+            const res = await fetch(`${WORKER_URL}/api/radio/stream-url?id=${vId}`, { signal: AbortSignal.timeout(3200) });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.status === 'success' && data.streamUrl) {
+                    targetDeck.src = data.streamUrl;
+                    targetDeck.currentTime = offset;
+                    await targetDeck.play();
+                    return true;
                 }
             }
-        }
-    }
-    setInterval(updateClock, 1000);
+        } catch(e){}
 
-    function applyDaypartTheme(cat) {
-        const conf = tvDaypartConfig[cat] || tvDaypartConfig.delelott;
-        document.documentElement.style.setProperty('--theme-primary', conf.primaryColor);
-        document.documentElement.style.setProperty('--theme-gradient', conf.gradient);
-    }
-
-    // ⚡ KREATÍV TECHNIKAI SZÜNET KÉPERNYŐ VEZÉRLÉS
-    function showInterstitialScreen(nextTitle, secondsRemaining = 4) {
-        interstitialNextTrackText.textContent = nextTitle ? `🎵 ${nextTitle}` : "Következő klip előkészítése...";
-        let countdown = Math.max(1, Math.round(secondsRemaining));
-        interstitialTimerText.textContent = `00:0${countdown}`;
-        interstitialScreen.classList.add('active');
-
-        if (interstitialTimer) clearInterval(interstitialTimer);
-        interstitialTimer = setInterval(() => {
-            countdown--;
-            if (countdown <= 0) {
-                clearInterval(interstitialTimer);
-                hideInterstitialScreen();
-            } else {
-                interstitialTimerText.textContent = `00:0${countdown}`;
-            }
-        }, 1000);
-    }
-
-    function hideInterstitialScreen() {
-        if (interstitialTimer) clearInterval(interstitialTimer);
-        interstitialScreen.classList.remove('active');
+        return false;
     }
 
     // 📺 MASTER ADÁS & STREAM LEJÁTSZÓ MOTOR (NÉZŐI OLDAL)
-    function checkScheduleAndPlayback(currentSecToday, schedule) {
+    async function checkScheduleAndPlayback(currentSecToday, schedule) {
         if (!isViewerPlaying || transitionLock || currentActiveTwitchStreamer) return;
 
         if (!schedule || schedule.length === 0 || !isTvBroadcasting) {
@@ -1466,15 +1418,22 @@
             updateLiveBadgeUI(Boolean(clip.isStream));
             applyDaypartTheme(clip.cat);
 
-            let shouldPlayOnYt = false;
-            if (sourcePlaybackMode === 'yt_only') shouldPlayOnYt = true;
-            else if (sourcePlaybackMode === 'r2_only') shouldPlayOnYt = false;
-            else shouldPlayOnYt = Boolean(clip.youtubeId || clip.isYouTubeClip);
+            const activeDeck = (activeDeckName === 'A') ? deckA : deckB;
+            const otherDeck = (activeDeckName === 'A') ? deckB : deckA;
 
-            if (shouldPlayOnYt) {
-                deckA.pause(); deckB.pause();
-                deckA.style.opacity = '0'; deckB.style.opacity = '0';
+            otherDeck.pause();
+            otherDeck.style.opacity = '0';
+            otherDeck.classList.remove('active');
 
+            activeDeck.volume = isMuted ? 0 : masterVolume;
+            activeDeck.style.opacity = '1';
+            activeDeck.classList.add('active');
+
+            // 1. Megpróbáljuk 100%-ban tiszta reklámmentes streamként betölteni
+            const isCleanSuccess = await loadCleanDirectStream(clip, activeDeck, offsetSec);
+
+            if (!isCleanSuccess) {
+                // 2. Tartalék YouTube Deck lejátszás
                 const targetYtId = clip.youtubeId || extractYouTubeVideoId(clip.rawUrl || clip.url) || getNextEmergencyBackupClip().youtubeId;
                 const activePlayer = (activeYtDeck === 'A') ? ytPlayerA : ytPlayerB;
                 const activeEmbedDeck = (activeYtDeck === 'A') ? embedDeckA : embedDeckB;
@@ -1493,22 +1452,9 @@
                     applyBestYouTubeQuality(activePlayer);
                     startYtMonitor();
                 }
-            } else {
-                clearInterval(ytMonitorInterval);
-                embedDeckA.classList.remove('active'); embedDeckA.style.opacity = '0';
-                embedDeckB.classList.remove('active'); embedDeckB.style.opacity = '0';
-                if (ytPlayerA && ytPlayerA.stopVideo) ytPlayerA.stopVideo();
-                if (ytPlayerB && ytPlayerB.stopVideo) ytPlayerB.stopVideo();
-
-                const activeDeck = (activeDeckName === 'A') ? deckA : deckB;
-                activeDeck.src = clip.url;
-                activeDeck.currentTime = offsetSec;
-                activeDeck.volume = isMuted ? 0 : masterVolume;
-                activeDeck.style.opacity = '1';
-                activeDeck.classList.add('active');
-                activeDeck.play().then(() => hideInterstitialScreen()).catch(() => {});
             }
 
+            hideInterstitialScreen();
             if (offsetSec < 12) {
                 setTimeout(() => { runTrackPresentationSequence(schedule, true); }, 500);
             } else {
@@ -1528,77 +1474,6 @@
         watermarkWrap.style.display = (isViewerPlaying && isLogoVisible && isTvBroadcasting) ? 'flex' : 'none';
         applyAgeRating(currentAgeRating);
         applyCloudPositions();
-    }
-
-    function applyAgeRating(rating) {
-        currentAgeRating = rating;
-        if (rating === 'none' || !rating || !isViewerPlaying || !isTvBroadcasting) {
-            ageRatingContainer.style.display = 'none';
-            return;
-        }
-
-        if (rating === '0') {
-            nmhhRingBox.className = 'nmhh-ring';
-            nmhhRingBox.style.border = 'none';
-            nmhhRingBox.innerHTML = `<svg class="nmhh-child-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" stroke="#22c55e" stroke-width="8" fill="transparent"/><circle cx="36" cy="40" r="6.5" fill="#22c55e"/><circle cx="64" cy="40" r="6.5" fill="#22c55e"/><path d="M 32 60 Q 50 82 68 60" stroke="#22c55e" stroke-width="8" fill="transparent" stroke-linecap="round"/></svg>`;
-        } else if (rating === '18') {
-            nmhhRingBox.className = 'nmhh-ring ring-red';
-            nmhhRingBox.style.border = '4.5px solid #ef4444';
-            nmhhRingBox.innerHTML = `<span class="nmhh-number">18</span>`;
-        } else {
-            nmhhRingBox.className = 'nmhh-ring ring-yellow';
-            nmhhRingBox.style.border = '4.5px solid #facc15';
-            nmhhRingBox.innerHTML = `<span class="nmhh-number">${rating}</span>`;
-        }
-
-        evaluateAgeRatingVisibility();
-    }
-
-    function parseTimeToMinutes(timeStr) {
-        if (!timeStr) return 0;
-        const [h, m] = timeStr.split(':').map(Number);
-        return (h || 0) * 60 + (m || 0);
-    }
-
-    function evaluateAgeRatingVisibility() {
-        if (!isViewerPlaying || !isTvBroadcasting || currentAgeRating === 'none') {
-            ageRatingContainer.style.display = 'none';
-            return;
-        }
-
-        if (isRatingAutoTimerEnabled) {
-            const now = new Date();
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const onMinutes = parseTimeToMinutes(ratingTimerOnTime);
-            const offMinutes = parseTimeToMinutes(ratingTimerOffTime);
-
-            let isWithinActiveWindow = (onMinutes <= offMinutes) 
-                ? (currentMinutes >= onMinutes && currentMinutes < offMinutes)
-                : (currentMinutes >= onMinutes || currentMinutes < offMinutes);
-
-            if (!isWithinActiveWindow) {
-                ageRatingContainer.style.display = 'none';
-                return;
-            }
-        }
-
-        ageRatingContainer.style.display = 'flex';
-
-        // Hírsáv éjszakai levétele & reggeli random visszatérése
-        const now = new Date();
-        const curH = now.getHours();
-        const curM = now.getMinutes();
-        const curS = now.getSeconds();
-
-        if (isViewerPlaying && isNewsGlassManualEnabled) {
-            if (curH >= 22 || curH < 6) {
-                newsGlassContainer.style.display = 'none';
-            } else if (curH === 6 && curM === 0 && curS < randomMorningOffsetSeconds) {
-                newsGlassContainer.style.display = 'none';
-            } else {
-                newsGlassContainer.style.display = 'flex';
-            }
-        }
     }
 
     function showStandby(resumeTimeStr) {
@@ -1651,31 +1526,8 @@
         monoscopeLayer.classList.remove('active');
     }
 
-    function startYtMonitor() {
-        clearInterval(ytMonitorInterval);
-        ytMonitorInterval = setInterval(() => {
-            if (!isViewerPlaying || !isTvBroadcasting || isVideoTransitioning || transitionLock || currentActiveTwitchStreamer) return;
-
-            const activePlayer = (activeYtDeck === 'A') ? ytPlayerA : ytPlayerB;
-            if (!activePlayer || !activePlayer.getCurrentTime) return;
-
-            const curTime = activePlayer.getCurrentTime();
-            const dur = activePlayer.getDuration();
-            const remaining = dur - curTime;
-
-            if (remaining <= 20 && remaining > (VIDEO_CROSSFADE_SEC + 1) && !isEndSequenceRunning) {
-                const todayKey = getSelectedDateKey(0);
-                runTrackPresentationSequence(weekSchedules[todayKey] || [], false);
-            }
-
-            if (dur > 0 && remaining <= VIDEO_CROSSFADE_SEC && remaining > 0) {
-                clearInterval(ytMonitorInterval);
-                executeVideoCrossfade(false);
-            }
-        }, 200);
-    }
-
-    function executeVideoCrossfade(forceImmediate = false) {
+    // 🎚️ ZERO-BLACK-SCREEN & REKLÁMMENTES KERESZTÁTÚSZTATÁS
+    async function executeVideoCrossfade(forceImmediate = false) {
         if (twitchPendingSwitchStreamer) {
             switchToTwitchLiveImmediate(twitchPendingSwitchStreamer);
             return;
@@ -1698,96 +1550,21 @@
         updateLiveBadgeUI(Boolean(newClip.isStream));
         applyDaypartTheme(newClip.cat);
 
-        let isNextYt = false;
-        if (sourcePlaybackMode === 'yt_only') isNextYt = true;
-        else if (sourcePlaybackMode === 'r2_only') isNextYt = false;
-        else isNextYt = Boolean(newClip.youtubeId || newClip.isYouTubeClip);
-
-        if (isNextYt) {
-            const nextYtDeckName = (activeYtDeck === 'A') ? 'B' : 'A';
-            const incomingEmbed = (nextYtDeckName === 'A') ? embedDeckA : embedDeckB;
-            const outgoingEmbed = (nextYtDeckName === 'A') ? embedDeckB : embedDeckA;
-            const incomingPlayer = (nextYtDeckName === 'A') ? ytPlayerA : ytPlayerB;
-            const outgoingPlayer = (nextYtDeckName === 'A') ? ytPlayerB : ytPlayerA;
-            const outgoingVideo = (activeDeckName === 'A') ? deckA : deckB;
-            const targetYtId = newClip.youtubeId || extractYouTubeVideoId(newClip.rawUrl || newClip.url) || getNextEmergencyBackupClip().youtubeId;
-
-            incomingEmbed.classList.add('active');
-            incomingEmbed.style.opacity = '0';
-
-            if (incomingPlayer && incomingPlayer.loadVideoById) {
-                incomingPlayer.loadVideoById({ videoId: targetYtId, startSeconds: 0 });
-                incomingPlayer.unMute();
-                incomingPlayer.setVolume(0);
-                disableYouTubeCaptions(incomingPlayer);
-                applyBestYouTubeQuality(incomingPlayer);
-            }
-
-            let waitForPlayAttempts = 0;
-            const checkPlayStateInterval = setInterval(() => {
-                waitForPlayAttempts++;
-                const isPlaying = (nextYtDeckName === 'A' ? ytPlayerAState : ytPlayerBState) === YT.PlayerState.PLAYING;
-
-                if (!isPlaying && waitForPlayAttempts > 6 && !interstitialScreen.classList.contains('active')) {
-                    showInterstitialScreen(newClip.title, 4);
-                }
-
-                if (isPlaying || waitForPlayAttempts > 25) {
-                    clearInterval(checkPlayStateInterval);
-
-                    let step = 0;
-                    const steps = 35;
-                    const timer = setInterval(() => {
-                        step++;
-                        const p = step / steps;
-                        const inVolCurve = Math.sin(p * Math.PI / 2);
-                        const outVolCurve = Math.cos(p * Math.PI / 2);
-
-                        incomingEmbed.style.opacity = inVolCurve.toFixed(3);
-                        if (incomingPlayer && incomingPlayer.setVolume) incomingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * inVolCurve));
-
-                        outgoingEmbed.style.opacity = outVolCurve.toFixed(3);
-                        if (outgoingPlayer && outgoingPlayer.setVolume) outgoingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * outVolCurve));
-
-                        outgoingVideo.style.opacity = outVolCurve.toFixed(3);
-                        outgoingVideo.volume = Math.max(0, (isMuted ? 0 : masterVolume) * outVolCurve);
-
-                        if (step >= steps) {
-                            clearInterval(timer);
-                            outgoingEmbed.classList.remove('active');
-                            outgoingEmbed.style.opacity = '0';
-                            if (outgoingPlayer && outgoingPlayer.stopVideo) outgoingPlayer.stopVideo();
-
-                            outgoingVideo.pause();
-                            outgoingVideo.classList.remove('active');
-                            outgoingVideo.style.opacity = '0';
-
-                            hideInterstitialScreen();
-                            activeYtDeck = nextYtDeckName;
-                            isVideoTransitioning = false;
-                            transitionLock = false;
-                            startYtMonitor();
-                            runTrackPresentationSequence(schedule, true);
-                        }
-                    }, 100);
-                }
-            }, 100);
-            return;
-        }
-
         const currentDeck = (activeDeckName === 'A') ? deckA : deckB;
         const nextDeck = (activeDeckName === 'A') ? deckB : deckA;
         const nextDeckName = (activeDeckName === 'A') ? 'B' : 'A';
+
         const activeYtPlayer = (activeYtDeck === 'A') ? ytPlayerA : ytPlayerB;
         const activeYtEmbed = (activeYtDeck === 'A') ? embedDeckA : embedDeckB;
 
-        nextDeck.src = newClip.url;
         nextDeck.currentTime = 0;
         nextDeck.volume = 0;
         nextDeck.style.opacity = '0';
         nextDeck.classList.add('active');
 
-        const startMp4Crossfade = () => {
+        const isCleanDirect = await loadCleanDirectStream(newClip, nextDeck, 0);
+
+        if (isCleanDirect) {
             let step = 0;
             const steps = 35;
             const timer = setInterval(() => {
@@ -1823,251 +1600,78 @@
                     runTrackPresentationSequence(schedule, true);
                 }
             }, 100);
-        };
-
-        nextDeck.play().then(() => {
-            startMp4Crossfade();
-        }).catch(() => {
-            showInterstitialScreen(newClip.title, 3);
-            setTimeout(startMp4Crossfade, 500);
-        });
-    }
-
-    function triggerLowerThirdBanner(type, rawTrackTitle, showCat) {
-        if (!isViewerPlaying || !isLogoVisible || !isTvBroadcasting) return;
-
-        const showConfig = tvDaypartConfig[showCat] || tvDaypartConfig.delelott;
-        applyDaypartTheme(showCat);
-
-        const parsed = parseArtistAndTitle(rawTrackTitle);
-
-        ltShowTitle.textContent = showConfig.title;
-        ltStatusBadge.className = `lt-status-badge badge-${type.toLowerCase()}`;
-        ltStatusBadge.textContent = type;
-        ltArtistRow.textContent = parsed.artist;
-        ltTrackRow.textContent = parsed.title;
-
-        if (parsed.title.length > 36 || parsed.artist.length > 28) {
-            ltTrackRow.classList.add('font-shrink');
-        } else {
-            ltTrackRow.classList.remove('font-shrink');
+            return;
         }
 
-        lowerThirdBanner.classList.add('banner-show');
-    }
+        // Fallback: Ha csak beágyazva megy a klip
+        const nextYtDeckName = (activeYtDeck === 'A') ? 'B' : 'A';
+        const incomingEmbed = (nextYtDeckName === 'A') ? embedDeckA : embedDeckB;
+        const outgoingEmbed = (nextYtDeckName === 'A') ? embedDeckB : embedDeckA;
+        const incomingPlayer = (nextYtDeckName === 'A') ? ytPlayerA : ytPlayerB;
+        const outgoingPlayer = (nextYtDeckName === 'A') ? ytPlayerB : ytPlayerA;
 
-    function hideLowerThirdImmediate() {
-        clearTimeout(bannerHideTimeout);
-        bannerSequenceTimers.forEach(t => clearTimeout(t));
-        bannerSequenceTimers = [];
-        isIntroBannerRunning = false;
-        isEndSequenceRunning = false;
-        lowerThirdBanner.classList.remove('banner-show');
-    }
+        const targetYtId = newClip.youtubeId || extractYouTubeVideoId(newClip.rawUrl || newClip.url) || getNextEmergencyBackupClip().youtubeId;
 
-    function runTrackPresentationSequence(schedule, isIntro = true) {
-        if (!isViewerPlaying || !isLogoVisible || !isTvBroadcasting) return;
+        incomingEmbed.classList.add('active');
+        incomingEmbed.style.opacity = '0';
 
-        hideLowerThirdImmediate();
-
-        const curClip = schedule[currentClipIndex];
-        const curCat = curClip?.cat || getDaypartKeyForHour(new Date().getHours());
-        const nextClip = schedule[(currentClipIndex + 1) % schedule.length];
-        const laterClip = schedule[(currentClipIndex + 2) % schedule.length];
-
-        if (isIntro) {
-            isIntroBannerRunning = true;
-            if (curClip) triggerLowerThirdBanner("MOST", curClip.title, curCat);
-
-            bannerSequenceTimers.push(setTimeout(() => {
-                lowerThirdBanner.classList.remove('banner-show');
-                isIntroBannerRunning = false;
-            }, 7500));
-        } else {
-            isEndSequenceRunning = true;
-            if (curClip) triggerLowerThirdBanner("MOST", curClip.title, curCat);
-
-            bannerSequenceTimers.push(setTimeout(() => {
-                if (nextClip && isViewerPlaying) triggerLowerThirdBanner("KÖVETKEZIK", nextClip.title, curCat);
-            }, 5500));
-
-            bannerSequenceTimers.push(setTimeout(() => {
-                if (laterClip && isViewerPlaying) triggerLowerThirdBanner("KÉSŐBB", laterClip.title, curCat);
-            }, 11000));
-
-            bannerSequenceTimers.push(setTimeout(() => {
-                lowerThirdBanner.classList.remove('banner-show');
-                isEndSequenceRunning = false;
-            }, 16000));
+        if (incomingPlayer && incomingPlayer.loadVideoById) {
+            incomingPlayer.loadVideoById({ videoId: targetYtId, startSeconds: 0 });
+            incomingPlayer.unMute();
+            incomingPlayer.setVolume(0);
+            disableYouTubeCaptions(incomingPlayer);
+            applyBestYouTubeQuality(incomingPlayer);
         }
-    }
 
-    async function fetchLiveNews() {
-        try {
-            const res = await fetch(`${WORKER_URL}?_t=${Date.now()}`);
-            if (res.ok) {
-                const data = await res.json();
-                let rawList = [];
-                if (data && data.news) {
-                    rawList = Array.isArray(data.news) ? data.news : Object.values(data.news);
-                }
+        let waitForPlayAttempts = 0;
+        const checkPlayStateInterval = setInterval(() => {
+            waitForPlayAttempts++;
+            const isPlaying = (nextYtDeckName === 'A' ? ytPlayerAState : ytPlayerBState) === YT.PlayerState.PLAYING;
 
-                if (rawList.length > 0) {
-                    const processed = rawList.map(item => {
-                        let timeMs = Date.now();
-                        if (item.date) {
-                            const p = new Date(item.date).getTime();
-                            if (!isNaN(p)) timeMs = p;
-                        }
-                        return {
-                            title: cleanHtmlText(item.title || ""),
-                            summary: cleanHtmlText(item.description || item.summary || ""),
-                            source: (item.source || "KÉPBEN!").toUpperCase(),
-                            timeMs: timeMs,
-                            timeStr: formatNewsTime(item.date)
-                        };
-                    });
-
-                    processed.sort((a, b) => b.timeMs - a.timeMs);
-                    activeNewsQueue = processed;
-                    currentNewsItemIndex = 0;
-                    displayNextNewsCard();
-                }
+            if (!isPlaying && waitForPlayAttempts > 6 && !interstitialScreen.classList.contains('active')) {
+                showInterstitialScreen(newClip.title, 4);
             }
-        } catch(e) {}
-    }
 
-    function formatNewsTime(dateVal) {
-        if (!dateVal) return "MA";
-        const d = new Date(dateVal);
-        if (isNaN(d.getTime())) return "MA";
-        const now = new Date();
-        const isToday = d.toDateString() === now.toDateString();
-        const hh = String(d.getHours()).padStart(2, '0');
-        const mm = String(d.getMinutes()).padStart(2, '0');
-        return isToday ? `${hh}:${mm}` : `${d.getMonth()+1}.${d.getDate()}.`;
-    }
+            if (isPlaying || waitForPlayAttempts > 25) {
+                clearInterval(checkPlayStateInterval);
 
-    function displayNextNewsCard() {
-        if (activeNewsQueue.length === 0) return;
-        clearTimeout(newsRotationTimer);
+                let step = 0;
+                const steps = 35;
+                const timer = setInterval(() => {
+                    step++;
+                    const p = step / steps;
+                    const inVolCurve = Math.sin(p * Math.PI / 2);
+                    const outVolCurve = Math.cos(p * Math.PI / 2);
 
-        if (currentNewsItemIndex >= activeNewsQueue.length) currentNewsItemIndex = 0;
-        const item = activeNewsQueue[currentNewsItemIndex];
+                    incomingEmbed.style.opacity = inVolCurve.toFixed(3);
+                    if (incomingPlayer && incomingPlayer.setVolume) incomingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * inVolCurve));
 
-        newsGlassCard.classList.remove('news-show');
-        newsGlassCard.classList.add('news-hide');
+                    outgoingEmbed.style.opacity = outVolCurve.toFixed(3);
+                    if (outgoingPlayer && outgoingPlayer.setVolume) outgoingPlayer.setVolume(Math.round((isMuted ? 0 : masterVolume) * 100 * outVolCurve));
 
-        setTimeout(() => {
-            newsHeadlineText.textContent = item.title;
-            newsSummaryText.textContent = item.summary || "A legfrissebb részletekért látogasson el online felületeinkre.";
-            newsSourceBadge.textContent = item.source;
-            newsTimeStamp.textContent = item.timeStr;
+                    currentDeck.style.opacity = outVolCurve.toFixed(3);
+                    currentDeck.volume = Math.max(0, (isMuted ? 0 : masterVolume) * outVolCurve);
 
-            newsGlassCard.classList.remove('news-hide');
-            newsGlassCard.classList.add('news-show');
+                    if (step >= steps) {
+                        clearInterval(timer);
+                        outgoingEmbed.classList.remove('active');
+                        outgoingEmbed.style.opacity = '0';
+                        if (outgoingPlayer && outgoingPlayer.stopVideo) outgoingPlayer.stopVideo();
 
-            currentNewsItemIndex = (currentNewsItemIndex + 1) % activeNewsQueue.length;
-            newsRotationTimer = setTimeout(displayNextNewsCard, 9500);
-        }, 320);
-    }
+                        currentDeck.pause();
+                        currentDeck.classList.remove('active');
+                        currentDeck.style.opacity = '0';
 
-    function decodeWmoWeather(code, isDay = 1) {
-        const isNight = (isDay === 0);
-        if (code === 0) return isNight ? { icon: "🌙", text: "Tiszta csillagos ég" } : { icon: "☀️", text: "Tiszta, napos idő" };
-        if (code === 1) return isNight ? { icon: "🌙⛅", text: "Alig felhős éjjel" } : { icon: "🌤️", text: "Túlnyomóan derült" };
-        if (code === 2) return isNight ? { icon: "☁️🌙", text: "Részben felhős" } : { icon: "⛅", text: "Változóan felhős" };
-        if (code === 3) return { icon: "☁️", text: "Borult égbolt" };
-        if (code === 45 || code === 48) return { icon: "🌫️", text: "Párás, ködös idő" };
-        if (code >= 51 && code <= 55) return { icon: "🌦️", text: "Szitálás" };
-        if (code === 56 || code === 57) return { icon: "🌧️", text: "Ónos szitálás" };
-        if (code >= 61 && code <= 65) return { icon: "🌧️", text: "Esőzés" };
-        if (code === 66 || code === 67) return { icon: "🌧️", text: "Ónos eső" };
-        if (code >= 71 && code <= 77) return { icon: "❄️", text: "Havazás" };
-        if (code >= 80 && code <= 82) return { icon: "🌦️", text: "Záporeső" };
-        if (code === 85 || code === 86) return { icon: "🌨️", text: "Hózápor" };
-        if (code >= 95 && code <= 99) return { icon: "⛈️", text: "Zivatar" };
-        return isNight ? { icon: "🌙", text: "Csendes éjszaka" } : { icon: "🌤️", text: "Kellemes idő" };
-    }
-
-    async function fetchLiveWeather() {
-        try {
-            const resWorker = await fetch(`${WORKER_URL}?_t=${Date.now()}`);
-            if (resWorker.ok) {
-                const dataWorker = await resWorker.json();
-                if (dataWorker && Array.isArray(dataWorker.weather) && dataWorker.weather.length > 0) {
-                    cachedWeatherData = dataWorker.weather;
-                    renderCurrentWeatherCity();
-                    return;
-                }
+                        hideInterstitialScreen();
+                        activeYtDeck = nextYtDeckName;
+                        isVideoTransitioning = false;
+                        transitionLock = false;
+                        startYtMonitor();
+                        runTrackPresentationSequence(schedule, true);
+                    }
+                }, 100);
             }
-        } catch(e) {}
-    }
-
-    function renderCurrentWeatherCity() {
-        if (cachedWeatherData.length === 0) return;
-        const c = cachedWeatherData[currentWeatherCityIndex % cachedWeatherData.length];
-        weatherCityLbl.textContent = c.name;
-        const tempVal = parseFloat(c.temp);
-        weatherTempLbl.textContent = `${tempVal > 0 ? '+' : ''}${c.temp}°C`;
-        weatherIconBadge.textContent = c.icon;
-    }
-
-    function startWeatherCityRotator() {
-        if (weatherCityInterval) clearInterval(weatherCityInterval);
-        weatherCityInterval = setInterval(() => {
-            if (cachedWeatherData.length === 0) return;
-            currentWeatherCityIndex = (currentWeatherCityIndex + 1) % cachedWeatherData.length;
-            renderCurrentWeatherCity();
-        }, 8000);
-    }
-
-    function evaluateUpcomingDrawerSchedule(hour, minute, second) {
-        if (!isViewerPlaying || isVideoTransitioning || isIntroBannerRunning || isEndSequenceRunning) return;
-
-        if ([0, 15, 30, 45].includes(minute) && second === 12 && lastDrawerTriggerMinute !== minute) {
-            lastDrawerTriggerMinute = minute;
-            triggerUpcomingDrawer(hour);
-        }
-    }
-
-    function triggerUpcomingDrawer(hour) {
-        const todayKey = getSelectedDateKey(0);
-        const schedule = weekSchedules[todayKey] || [];
-        if (schedule.length === 0) return;
-
-        const now = new Date();
-        const curSecToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        const windowEndSec = curSecToday + (30 * 60);
-
-        const upcomingClips = schedule.filter(item => item.startSec > curSecToday && item.startSec <= windowEndSec);
-        if (upcomingClips.length === 0) return;
-
-        const curCat = getDaypartKeyForHour(hour !== undefined ? hour : now.getHours());
-        const showConfig = tvDaypartConfig[curCat] || tvDaypartConfig.delelott;
-        drawerShowBlockTitle.textContent = `${showConfig.title} · MŰSORAJÁNLÓ`;
-
-        drawerUpcomingList.innerHTML = upcomingClips.slice(0, 4).map(clip => {
-            const parsed = parseArtistAndTitle(clip.title);
-            const timeFormatted = clip.startTimeStr.slice(0, 5);
-            return `
-                <div class="drawer-item">
-                    <span class="drawer-time">${timeFormatted}</span>
-                    <div class="drawer-track-meta">
-                        <span class="drawer-track-artist">${parsed.artist}</span>
-                        <span class="drawer-track-title">${parsed.title}</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        upcomingDrawer.classList.add('drawer-show');
-        applyCloudPositions();
-
-        clearTimeout(upcomingDrawerHideTimer);
-        upcomingDrawerHideTimer = setTimeout(() => {
-            upcomingDrawer.classList.remove('drawer-show');
-        }, 20000);
+        }, 100);
     }
 
     // ⚡ REALTIME FIREBASE SZINKRONIZÁCIÓ (STÚDIÓ ÁLLAPOTOK AZONNALI KÖVETÉSE)
